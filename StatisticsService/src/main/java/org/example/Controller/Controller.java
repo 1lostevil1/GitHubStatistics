@@ -1,11 +1,9 @@
 package org.example.Controller;
 
 import org.example.Client.GitHubClient;
-import org.example.Response.CommitResponse;
-import org.example.Response.ShaResponse;
+import org.example.Response.Commit.CommitResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;

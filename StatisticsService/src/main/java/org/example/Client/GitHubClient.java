@@ -1,7 +1,6 @@
 package org.example.Client;
 
-import org.example.Config.ApplicationConfig;
-import org.example.Response.CommitResponse;
+import org.example.Response.Commit.CommitResponse;
 import org.example.Response.ShaResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.util.*;
@@ -11,10 +10,8 @@ import java.util.stream.Stream;
 public class GitHubClient {
 
     private final WebClient webClient;
-    private final String apiToken;
 
-    public GitHubClient(WebClient webClient, ApplicationConfig config) {
-        this.apiToken = config.gitHubToken();
+    public GitHubClient(WebClient webClient) {
         this.webClient = webClient;
     }
 
@@ -25,7 +22,6 @@ public class GitHubClient {
 //                        .queryParam("since", since)
 //                        .queryParam("until", until)
                         .build(owner, repo))
-                .header("Authorization", "token " + apiToken)
                 .retrieve()
                 .bodyToMono(ShaResponse[].class)
                 .block();
@@ -35,7 +31,6 @@ public class GitHubClient {
     private CommitResponse getCommitInfo(String owner, String repo, String sha) {
         return webClient.get()
                 .uri("/repos/{owner}/{repo}/commits/{sha}", owner, repo, sha)
-                .header("Authorization", "token " + apiToken)
                 .retrieve()
                 .bodyToMono(CommitResponse.class)
                 .block();
@@ -51,6 +46,7 @@ public class GitHubClient {
                         .map(shaResponse -> getCommitInfo(owner, repo, shaResponse.sha()))
                         .toList();
         do {
+            System.out.println(perPage);
             System.out.println(page);
             result.addAll(perPage);
             perPage =

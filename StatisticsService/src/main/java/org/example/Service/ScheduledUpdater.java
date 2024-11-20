@@ -16,6 +16,9 @@ public class ScheduledUpdater {
 
     @Scheduled(fixedDelayString = "#{scheduler.interval}")
     public void task(){
-
+        //берем из бд дату последней проверки
+        //делаем запрос since=последняя дата + что=то until = сейчас
+        //обновляем инфу в списке изменений файлов и в аутбоксе
+        // фронтент там как-то это читает
     }
 }

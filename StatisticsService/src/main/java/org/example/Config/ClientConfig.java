@@ -25,8 +25,9 @@ public class ClientConfig {
 
         WebClient webClient = WebClient.builder()
                 .exchangeStrategies(exchangeStrategies)
+                .defaultHeader("Authorization", "token " + config.gitHubToken())
                 .baseUrl(baseUrl)
                 .build();
-        return new GitHubClient(webClient,config);
+        return new GitHubClient(webClient);
     }
 }
