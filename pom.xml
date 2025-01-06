@@ -11,6 +11,7 @@
     <modules>
         <module>StatisticsService</module>
         <module>Model</module>
+        <module>UserService</module>
     </modules>
 
     <properties>

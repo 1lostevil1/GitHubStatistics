@@ -1,7 +1,7 @@
 package org.example.Client;
 
 import org.example.Response.Commit.CommitResponse;
-import org.example.Response.ShaResponse;
+import org.example.Response.Commit.ShaResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.util.*;
 import java.util.stream.Stream;

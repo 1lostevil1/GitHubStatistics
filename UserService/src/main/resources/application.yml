@@ -1,0 +1,19 @@
+app:
+  base-url-auth: "http://localhost:8090"
+spring:
+  liquibase:
+    enabled: false
+  application:
+    name: AuthService
+  datasource:
+    driver_class_name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5433/GitHubSTAT
+    username: postgres
+    password: postgres
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+server:
+  port: 8090
