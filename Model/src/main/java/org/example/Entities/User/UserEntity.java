@@ -11,14 +11,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "\"user\"")
+@Table(name = "\"User\"")
 public class UserEntity {
 
-    public UserEntity(String username,String email, int passwordHash) {
+    public UserEntity(String username,String email, String password) {
         super();
         this.username = username;
         this.email = email;
-        this.passwordHash = passwordHash;
+        this.password = password;
     }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,7 @@ public class UserEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "password", nullable = false)
-    private int passwordHash;
+    @Column(nullable = false)
+    private String password;
 
     }

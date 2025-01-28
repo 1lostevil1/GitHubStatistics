@@ -24,7 +24,7 @@ public class FileEntity {
     private int changes;
     @ManyToMany
     @JoinTable(
-                name = "file_branch",
+                name = "commit",
                 joinColumns = @JoinColumn(name = "file_id"),
                 inverseJoinColumns = @JoinColumn(name = "branch_id")
               )

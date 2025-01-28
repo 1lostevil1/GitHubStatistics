@@ -1,0 +1,192 @@
+юзер переходит по ссылке - (??относительно токена??) попадает на форму регистрации\логина\home страницу
+подписка на ветку - подписка на вебсокет (сервер) + добавление связи юзер-ветка в бд
+перезагрузка страницы - юзеру отображаются графики на основе данных из бд --->
+(стат сервис пишет в первую очередь в бд, потом в вебсокет) + вебсокет подписка на все его ветки
+произошёл апдейт по ветке (респонс с стат сервиса) - вебсокет пишет всем подписанным юзерам
+
+
+
+
+
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic", "/queue");
+        config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws").withSockJS();
+    }
+}
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Subscription {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String userId;
+    private String repoUrl;
+
+    // Геттеры и сеттеры
+}
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
+    List<Subscription> findByUserId(String userId);
+}
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class SubscriptionService {
+
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
+
+    public void subscribe(String userId, String repoUrl) {
+        Subscription subscription = new Subscription();
+        subscription.setUserId(userId);
+        subscription.setRepoUrl(repoUrl);
+        subscriptionRepository.save(subscription);
+    }
+
+    public List<Subscription> getSubscriptions(String userId) {
+        return subscriptionRepository.findByUserId(userId);
+    }
+}
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class WebSocketController {
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
+
+    @MessageMapping("/subscribe")
+    public void subscribe(SubscriptionMessage message) {
+        String userId = message.getUserId();
+        String repoUrl = message.getRepoUrl();
+        subscriptionService.subscribe(userId, repoUrl);
+        // Логика для уведомления пользователя о подписке
+        messagingTemplate.convertAndSendToUser(userId, "/queue/updates", new UpdateMessage(repoUrl));
+    }
+
+    public void notifyUser(String userId, String repoUrl) {
+        messagingTemplate.convertAndSendToUser(userId, "/queue/updates", new UpdateMessage(repoUrl));
+    }
+}
+public class SubscriptionMessage {
+    private String userId;
+    private String repoUrl;
+
+    // Геттеры и сеттеры
+}
+
+public class UpdateMessage {
+    private String repoUrl;
+
+    public UpdateMessage(String repoUrl) {
+        this.repoUrl = repoUrl;
+    }
+
+    // Геттеры и сеттеры
+}
+. Настройка React Frontend
+Установка зависимостей
+Установите необходимые зависимости для работы с WebSocket:
+
+
+npm install sockjs-client stompjs
+Создание компонента
+Создайте компонент для подключения к WebSocket и обработки уведомлений:
+
+
+import React, { useEffect, useState } from 'react';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+
+const WebSocketComponent = () => {
+    const [stompClient, setStompClient] = useState(null);
+    const [userId, setUserId] = useState('');
+    const [repoUrl, setRepoUrl] = useState('');
+    const [updates, setUpdates] = useState([]);
+
+    useEffect(() => {
+        const socket = new SockJS('/ws');
+        const client = Stomp.over(socket);
+        setStompClient(client);
+
+        client.connect({}, (frame) => {
+            client.subscribe(`/user/${userId}/queue/updates`, (message) => {
+                const update = JSON.parse(message.body);
+                setUpdates((prev) => [...prev, update.repoUrl]);
+                // Логика для обновления графика
+            });
+        });
+
+        return () => {
+            if (client) {
+                client.disconnect();
+            }
+        };
+    }, [userId]);
+
+    const subscribe = () => {
+        if (stompClient && userId && repoUrl) {
+            stompClient.send('/app/subscribe', {}, JSON.stringify({ userId, repoUrl }));
+        }
+    };
+
+    return (
+        <div>
+            <input
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                placeholder="Enter your user ID"
+            />
+            <input
+                type="text"
+                value={repoUrl}
+                onChange={(e) => setRepoUrl(e.target.value)}
+                placeholder="Enter repo URL"
+            />
+            <button onClick={subscribe}>Subscribe</button>
+            <ul>
+                {updates.map((update, index) => (
+                    <li key={index}>{update}</li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+export default WebSocketComponent;
+3. Логика обновления графика
+Вам нужно будет добавить логику для обновления графика на основе полученных уведомлений. Это может включать вызов API для получения новых данных и перерисовку графика.

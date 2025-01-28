@@ -10,8 +10,8 @@
     <changeSet id="init_tables" author="LostEvil">
         <sqlFile path="liquibase/Branch.sql" relativeToChangelogFile="true"/>
         <sqlFile path="liquibase/File.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="liquibase/File_Branch.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="liquibase/user.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="liquibase/Commit.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="liquibase/User.sql" relativeToChangelogFile="true"/>
         <sqlFile path="liquibase/User_Branch.sql" relativeToChangelogFile="true"/>
 
     </changeSet>

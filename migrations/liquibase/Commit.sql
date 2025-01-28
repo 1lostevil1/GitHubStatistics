@@ -1,4 +1,4 @@
-CREATE TABLE File_Branch (
+CREATE TABLE Commit (
                              file_id BIGINT NOT NULL,
                              branch_id BIGINT NOT NULL,
                              PRIMARY KEY (file_id, branch_id),

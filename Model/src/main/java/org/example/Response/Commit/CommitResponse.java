@@ -11,6 +11,6 @@ public record CommitResponse(
         @JsonProperty("sha") String sha,
         @JsonProperty("files") List<File> files,
         @JsonProperty("stats") Stats stats,
-        @JsonProperty("author") Author author //через commit->author->...
+        @JsonProperty("author") Author author
 ) {
 }

@@ -1,6 +1,7 @@
 CREATE TABLE Branch (
                         id SERIAL PRIMARY KEY,
-                        url VARCHAR(255) NOT NULL,
-                        updateAt TIMESTAMP NOT NULL,
-                        checkAt TIMESTAMP NOT NULL
+                        owner VARCHAR(255) NOT NULL,
+                        repo VARCHAR(255) NOT NULL,
+                        branch_name VARCHAR(255) NOT NULL,
+                        check_at TIMESTAMP NOT NULL
 );
