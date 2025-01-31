@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.Entities.Github.BranchEntity;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -32,5 +36,8 @@ public class UserEntity {
 
     @Column(nullable = false)
     private String password;
+
+    @ManyToMany(mappedBy = "users")
+    private Set<BranchEntity> branches = new HashSet<>();
 
     }

@@ -22,6 +22,8 @@ public class FileEntity {
     private int additions;
     private int deletions;
     private int changes;
+
+
     @ManyToMany
     @JoinTable(
                 name = "commit",

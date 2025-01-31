@@ -1,11 +1,15 @@
 package org.example.Controller;
 
 import lombok.AllArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.example.DTO.UserDTO;
 import org.example.Exception.RepeatedRegistrationException;
 import org.example.Exception.WrongDataException;
 import org.example.Request.Auth.AuthTokenRequest;
+import org.example.Request.Auth.RegistrationRequest;
 import org.example.Response.Auth.AuthTokenResponse;
+import org.example.Response.Auth.RegistrationResponse;
 import org.example.Service.UserService;
 import org.example.Utils.JwtTokenUtils;
 import org.springframework.http.HttpStatus;
@@ -14,11 +18,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class AuthController {
 
 
@@ -26,29 +32,38 @@ public class AuthController {
 
     private final JwtTokenUtils jwtTokenUtils;
 
-    private  final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
 
-    @PostMapping("/registration")
-    public ResponseEntity<?>  registration(@RequestBody AuthTokenRequest authTokenRequest){
+    @PostMapping("/signup")
+    public ResponseEntity<?> registration(@Validated @RequestBody RegistrationRequest registrationRequest) {
 
-        if(userService.findByUsername(authTokenRequest.username()).isPresent()){
+        if (userService.findByUsername(registrationRequest.username()).isPresent()) {
             return new ResponseEntity<>(new RepeatedRegistrationException(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
 
-        UserDTO userDTO = new UserDTO(authTokenRequest.username(),authTokenRequest.email(),authTokenRequest.password());
-        return ResponseEntity.ok(userService.createNewUser(userDTO));
+        if (userService.findByEmail(registrationRequest.username()).isPresent()) {
+            return new ResponseEntity<>(new RepeatedRegistrationException(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным email уже существует"), HttpStatus.BAD_REQUEST);
+        }
+
+        UserDTO userDTO = new UserDTO(registrationRequest.username(), registrationRequest.email(), registrationRequest.password());
+        userService.createNewUser(userDTO);
+
+        return ResponseEntity.ok(new RegistrationResponse(userDTO.username(), userDTO.email()));
+    }
 
 
+    @GetMapping("/secured/info")
+    public String secured() {
+        return "Secured data";
     }
-    @GetMapping("/secured")
-    public String secured(){
-        return  "Secured data";
-    }
+
+
+
 
     @PostMapping("/createAuthToken")
-    public ResponseEntity<?> createAuthToken(@RequestBody AuthTokenRequest authTokenRequest) {
-
+    public ResponseEntity<?> createAuthToken(@Validated @RequestBody AuthTokenRequest authTokenRequest) {
+        log.info("{} requested token", authTokenRequest.username());
         try {
 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authTokenRequest.username(), authTokenRequest.password()));
@@ -57,7 +72,7 @@ public class AuthController {
 
             return new ResponseEntity<>(
                     new WrongDataException(HttpStatus.UNAUTHORIZED.value(),
-                    "Incorrect login or password"),HttpStatus.UNAUTHORIZED);
+                            "Incorrect login or password"), HttpStatus.UNAUTHORIZED);
         }
 
         UserDetails userDetails = userService.loadUserByUsername(authTokenRequest.username());

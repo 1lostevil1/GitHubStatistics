@@ -42,6 +42,10 @@ public class UserService implements UserDetailsService {
         return userRepo.findByUsername(username).map(userMapper::UserEntityToUserDTO);
     }
 
+    public Optional<UserDTO> findByEmail(String email){
+        return userRepo.findByEmail(email).map(userMapper::UserEntityToUserDTO);
+    }
+
 
     public UserDTO createNewUser(UserDTO userDTO) {
 

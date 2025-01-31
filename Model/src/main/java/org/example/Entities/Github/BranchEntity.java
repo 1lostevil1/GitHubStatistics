@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.Entities.User.UserEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
@@ -25,8 +26,20 @@ public class BranchEntity {
     private String repo;
     private String branch_name;
     private OffsetDateTime check_at;
+
+
     @ManyToMany(mappedBy = "branches")
     private Set<FileEntity> files = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_branch",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "branch_id")
+    )
+    private Set<UserEntity> users = new HashSet<>();
+
+
 
     public BranchEntity( String owner, String repo, String branchName, OffsetDateTime checkAt) {
         this.owner = owner;
