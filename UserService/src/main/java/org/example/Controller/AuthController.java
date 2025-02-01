@@ -1,15 +1,14 @@
 package org.example.Controller;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.DTO.UserDTO;
 import org.example.Exception.RepeatedRegistrationException;
 import org.example.Exception.WrongDataException;
-import org.example.Request.Auth.AuthTokenRequest;
-import org.example.Request.Auth.RegistrationRequest;
-import org.example.Response.Auth.AuthTokenResponse;
-import org.example.Response.Auth.RegistrationResponse;
+import org.example.Request.User.AuthTokenRequest;
+import org.example.Request.User.RegistrationRequest;
+import org.example.Response.User.AuthTokenResponse;
+import org.example.Response.User.RegistrationResponse;
 import org.example.Service.UserService;
 import org.example.Utils.JwtTokenUtils;
 import org.springframework.http.HttpStatus;

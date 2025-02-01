@@ -3,18 +3,16 @@ import org.example.Client.GitHubClient;
 import org.example.DTO.BranchDTO;
 import org.example.DTO.DatedListCommitRequest;
 import org.example.Repository.BranchRepo;
-import org.example.Response.Commit.CommitResponse;
-import org.example.Response.Commit.UpdateResponse;
+import org.example.Response.Github.Commit.CommitResponse;
+import org.example.Response.Github.Commit.UpdateResponse;
 import org.example.Utils.Mapper;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 
 @EnableScheduling

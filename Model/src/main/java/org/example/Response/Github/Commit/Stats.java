@@ -1,4 +1,4 @@
-package org.example.Response.Commit;
+package org.example.Response.Github.Commit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -1,8 +1,8 @@
 package org.example.Client;
 
 import org.example.DTO.DatedListCommitRequest;
-import org.example.Response.Commit.CommitResponse;
-import org.example.Response.Commit.ShaResponse;
+import org.example.Response.Github.Commit.CommitResponse;
+import org.example.Response.Github.Commit.ShaResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;

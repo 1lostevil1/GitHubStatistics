@@ -1,4 +1,4 @@
-package org.example.Response.Auth;
+package org.example.Response.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

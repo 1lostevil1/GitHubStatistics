@@ -3,8 +3,8 @@ package org.example.Utils;
 import org.example.DTO.BranchDTO;
 import org.example.DTO.DatedListCommitRequest;
 import org.example.Entities.Github.BranchEntity;
-import org.example.Response.Commit.CommitResponse;
-import org.example.Response.Commit.UpdateResponse;
+import org.example.Response.Github.Commit.CommitResponse;
+import org.example.Response.Github.Commit.UpdateResponse;
 
 import java.time.OffsetDateTime;
 import java.util.List;

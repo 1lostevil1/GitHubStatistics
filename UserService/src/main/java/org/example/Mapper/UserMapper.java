@@ -1,4 +1,4 @@
-package org.example.Utils;
+package org.example.Mapper;
 
 import org.example.DTO.UserDTO;
 import org.example.Entities.User.UserEntity;

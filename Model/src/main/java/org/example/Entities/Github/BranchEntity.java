@@ -1,10 +1,7 @@
 package org.example.Entities.Github;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.example.Entities.User.UserEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "Branch")
+@AllArgsConstructor
 @NoArgsConstructor
 public class BranchEntity {
 
@@ -46,5 +44,13 @@ public class BranchEntity {
         this.repo = repo;
         this.branch_name = branchName;
         this.check_at = checkAt;
+    }
+
+    public BranchEntity( String owner, String repo, String branchName, OffsetDateTime checkAt, Set<UserEntity> users) {
+        this.owner = owner;
+        this.repo = repo;
+        this.branch_name = branchName;
+        this.check_at = checkAt;
+        this.users = users;
     }
 }
