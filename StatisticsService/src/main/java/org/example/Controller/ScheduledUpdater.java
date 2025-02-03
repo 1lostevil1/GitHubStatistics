@@ -57,7 +57,7 @@ public class ScheduledUpdater {
 
 
                     branchRepo.updateCheckAtByOwnerRepoAndBranchName(
-                            link.checkAt().minusMonths(1),
+                            link.timestamp().minusMonths(1),
                             link.owner(),
                             link.repo(),
                             link.branchName()

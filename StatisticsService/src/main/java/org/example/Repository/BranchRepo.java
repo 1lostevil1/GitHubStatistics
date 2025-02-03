@@ -15,9 +15,9 @@ public interface BranchRepo extends JpaRepository<BranchEntity, Long> {
 
  @Modifying
  @Transactional
- @Query("UPDATE BranchEntity b SET b.check_at = :checkAt WHERE b.owner = :owner AND b.repo = :repo AND b.branch_name = :branchName")
+ @Query("UPDATE BranchEntity b SET b.timestamp= :checkAt WHERE b.owner = :owner AND b.repo = :repo AND b.branch = :branchName")
  int updateCheckAtByOwnerRepoAndBranchName(
-         @Param("checkAt") OffsetDateTime checkAt,
+         @Param("checkAt") OffsetDateTime timestamp,
          @Param("owner") String owner,
          @Param("repo") String repo,
          @Param("branchName") String branchName

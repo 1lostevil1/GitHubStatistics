@@ -12,11 +12,11 @@ import java.util.List;
 public class Mapper {
 
     public BranchDTO branchEntityToDTO(BranchEntity entity){
-        return  new BranchDTO(entity.getOwner(), entity.getRepo(), entity.getBranch_name(), entity.getCheck_at());
+        return  new BranchDTO(entity.getOwner(), entity.getRepo(), entity.getBranch(), entity.getTimestamp());
     }
 
     public DatedListCommitRequest branchDTOtoDatedListCommitRequest(BranchDTO branchDTO){
-        return  new DatedListCommitRequest(branchDTO.owner(), branchDTO.repo(), branchDTO.branchName(), branchDTO.checkAt(), OffsetDateTime.now());
+        return  new DatedListCommitRequest(branchDTO.owner(), branchDTO.repo(), branchDTO.branchName(), branchDTO.timestamp(), OffsetDateTime.now());
     }
 
     public UpdateResponse commitListToUpdateResponse(BranchDTO branchDTO, List<CommitResponse> commitResponses){

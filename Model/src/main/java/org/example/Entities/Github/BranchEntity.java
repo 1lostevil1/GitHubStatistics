@@ -22,8 +22,8 @@ public class BranchEntity {
     private Long id;
     private String owner;
     private String repo;
-    private String branch_name;
-    private OffsetDateTime check_at;
+    private String branch;
+    private OffsetDateTime timestamp;
 
 
     @ManyToMany(mappedBy = "branches")
@@ -42,15 +42,15 @@ public class BranchEntity {
     public BranchEntity( String owner, String repo, String branchName, OffsetDateTime checkAt) {
         this.owner = owner;
         this.repo = repo;
-        this.branch_name = branchName;
-        this.check_at = checkAt;
+        this.branch = branchName;
+        this.timestamp = checkAt;
     }
 
     public BranchEntity( String owner, String repo, String branchName, OffsetDateTime checkAt, Set<UserEntity> users) {
         this.owner = owner;
         this.repo = repo;
-        this.branch_name = branchName;
-        this.check_at = checkAt;
+        this.branch = branchName;
+        this.timestamp = checkAt;
         this.users = users;
     }
 }

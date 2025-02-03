@@ -13,5 +13,5 @@ import java.util.Optional;
 public interface BranchRepo extends JpaRepository<BranchEntity, Long> {
 
     @Transactional
-    Optional<BranchEntity> findByBranch_name(String branch_name);
+    Optional<BranchEntity> findByBranch(String branch);
 }

@@ -6,6 +6,6 @@ public record BranchDTO(
       String owner,
       String repo,
       String branchName,
-      OffsetDateTime checkAt
+      OffsetDateTime timestamp
 )
 {}

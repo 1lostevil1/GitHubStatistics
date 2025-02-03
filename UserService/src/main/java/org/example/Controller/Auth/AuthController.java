@@ -1,4 +1,4 @@
-package org.example.Controller;
+package org.example.Controller.Auth;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
