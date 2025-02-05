@@ -29,6 +29,6 @@ public class StatisticsClient {
                         error -> Mono.error(new ResponseStatusException(
                                 HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера"
                         ))
-                ).bodyToMono(Void.class).block();
+                );
     }
 }

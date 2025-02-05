@@ -17,7 +17,7 @@ public class GitHubClient {
     public GitHubClient(WebClient webClient) {
         this.webClient = webClient;
     }
-
+    //TODO SHA PARAM
     private ShaResponse[] getShaArrayPerPage(DatedListCommitRequest commitRequest, int page) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/repos/{owner}/{repo}/commits")
@@ -44,24 +44,21 @@ public class GitHubClient {
 
     public List<CommitResponse> getInto(DatedListCommitRequest commitRequest) {
         int page = 1;
-        int pageSize = 25;
+        int pageSize = 30;
         int currentPageSize = 0;
 
         List<CommitResponse> result = new ArrayList<>();
 
         do {
-            log.info("client rec call");
-            log.info("page {}", page);
             ShaResponse[] shaArray = getShaArrayPerPage(commitRequest, page);
             if (shaArray != null && shaArray.length > 0) {
                 currentPageSize = shaArray.length;
                 page = page + 1;
-                log.info("page {}", page);
-                log.info(String.valueOf(shaArray.length));
+                log.info(Arrays.toString(shaArray));
                 result.addAll(Stream.of(shaArray)
                         .map(shaResponse -> getCommitInfo(commitRequest, shaResponse.sha()))
                         .toList());
-            } else log.info("ZZZZZZZZZZ");
+            }
 
         } while (currentPageSize == pageSize);
 

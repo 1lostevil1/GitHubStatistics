@@ -7,8 +7,8 @@ import java.util.List;
 
 public record UpdateRequest(
         @JsonProperty("owner") String owner,
-        @JsonProperty("owner") String repo,
-        @JsonProperty("owner") String branchName,
+        @JsonProperty("repo") String repo,
+        @JsonProperty("branchName") String branchName,
         @JsonProperty("files") List<FileResponse> files
         ) {
 }

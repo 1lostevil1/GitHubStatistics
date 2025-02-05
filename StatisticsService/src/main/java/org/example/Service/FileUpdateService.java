@@ -9,6 +9,7 @@ import org.example.Utils.FileMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -34,6 +35,7 @@ public class FileUpdateService {
                 switch (fileDTO.status()){
                     case ADDED -> {
                       fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
+                        log.info("{} ADDED", fileDTO);
                     }
                     case REMOVED -> {
 
@@ -43,7 +45,7 @@ public class FileUpdateService {
                         else {
                             fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
                         }
-
+                        log.info("{} REMOVED", fileDTO);
                     }
 
                     case RENAMED -> {
@@ -54,24 +56,34 @@ public class FileUpdateService {
                         else {
                             fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
                         }
-
+                        log.info("{} RENAMED ", fileDTO);
                     }
 
                     case MODIFIED -> {
-                        FileEntity fileEntity = fileRepo.findByName(fileDTO.filename()).orElseThrow();
-                        if(fileRepo.findByName(fileDTO.filename()).isPresent()) {
-                            fileEntity.setAdditions(fileDTO.additions());
-                            fileEntity.setDeletions(fileDTO.deletions());
-                            fileEntity.setChanges(fileDTO.changes());
-                            fileRepo.saveAndFlush(fileEntity);
-                        }
-                        else {
-                            fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
+                        log.info("{} MODIFIED ", fileDTO);
+                        try {
+                            Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileDTO.filename());
+
+                            if (fileEntityOptional.isPresent()) {
+                                FileEntity fileEntity = fileEntityOptional.get();
+                                fileEntity.setAdditions(fileDTO.additions());
+                                fileEntity.setDeletions(fileDTO.deletions());
+                                fileEntity.setChanges(fileDTO.changes());
+                                fileRepo.saveAndFlush(fileEntity);
+                            } else {
+                                fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
+                            }
+                        } catch (Exception e) {
+                            log.info(e.getMessage());
                         }
                     }
 
                     case CHANGED -> {
                         log.info("file {} changed", fileDTO.filename());
+                    }
+
+                    default -> {
+                        log.info("file status {} ", fileDTO.status());
                     }
 
                 }
