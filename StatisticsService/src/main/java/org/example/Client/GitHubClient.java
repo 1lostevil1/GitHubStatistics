@@ -1,5 +1,6 @@
 package org.example.Client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.DTO.DatedListCommitRequest;
 import org.example.Response.Github.Commit.CommitResponse;
 import org.example.Response.Github.Commit.ShaResponse;
@@ -8,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.*;
 import java.util.stream.Stream;
 
-
+@Slf4j
 public class GitHubClient {
 
     private final WebClient webClient;
@@ -21,7 +22,7 @@ public class GitHubClient {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/repos/{owner}/{repo}/commits")
                         .queryParam("page", page)
-                        .queryParam("sha", commitRequest.branch())
+//                        .queryParam("sha", commitRequest.branch())
                         .queryParam("since", commitRequest.since())
                         .queryParam("until", commitRequest.until())
                         .build(commitRequest.owner(), commitRequest.repo()))
@@ -43,16 +44,26 @@ public class GitHubClient {
 
     public List<CommitResponse> getInto(DatedListCommitRequest commitRequest) {
         int page = 1;
-        int pageSize = 30;
+        int pageSize = 25;
+        int currentPageSize = 0;
 
         List<CommitResponse> result = new ArrayList<>();
+
         do {
+            log.info("client rec call");
+            log.info("page {}", page);
+            ShaResponse[] shaArray = getShaArrayPerPage(commitRequest, page);
+            if (shaArray != null && shaArray.length > 0) {
+                currentPageSize = shaArray.length;
+                page = page + 1;
+                log.info("page {}", page);
+                log.info(String.valueOf(shaArray.length));
+                result.addAll(Stream.of(shaArray)
+                        .map(shaResponse -> getCommitInfo(commitRequest, shaResponse.sha()))
+                        .toList());
+            } else log.info("ZZZZZZZZZZ");
 
-              result.addAll(Stream.of(getShaArrayPerPage(commitRequest, ++page))
-                            .map(shaResponse -> getCommitInfo(commitRequest, shaResponse.sha()))
-                            .toList());
-
-        } while (result.size() % pageSize == 0);
+        } while (currentPageSize == pageSize);
 
         return result;
     }

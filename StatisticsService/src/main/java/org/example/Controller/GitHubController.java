@@ -1,25 +1,38 @@
 package org.example.Controller;
 
 
+import lombok.extern.slf4j.Slf4j;
+import org.example.DTO.BranchDTO;
 import org.example.Entities.Github.BranchEntity;
 import org.example.Repository.BranchRepo;
+import org.example.Request.User.SubscriptionRequest;
+import org.example.Service.BranchUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @RestController
-@RequestMapping("/git")
+@RequestMapping("/stat")
+@Slf4j
 public class GitHubController {
 
     @Autowired
-    BranchRepo branchRepo;
+    BranchUpdateService branchUpdateService;
 
-    @GetMapping
-    public  void add(@RequestParam String owner, @RequestParam String repo, @RequestParam String branch) {
-        branchRepo.saveAndFlush(new BranchEntity(owner,repo,branch, OffsetDateTime.now().minusYears(20)));
+    @PostMapping("/recentlyAdded")
+    public  void recentlyAddedCheck(@RequestBody SubscriptionRequest subscriptionRequest) {
+
+        log.info("recentlyAddedCheck {}", subscriptionRequest);
+    branchUpdateService.checkUpdates(List.of(new BranchDTO(
+            subscriptionRequest.owner(),
+            subscriptionRequest.repo(),
+            subscriptionRequest.branchName(),
+            OffsetDateTime.now().minusYears(30)))
+    );
+
     }
 }

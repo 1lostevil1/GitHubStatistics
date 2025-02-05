@@ -31,4 +31,11 @@ public class FileEntity {
                 inverseJoinColumns = @JoinColumn(name = "branch_id")
               )
     private Set<BranchEntity> branches;
+
+    public FileEntity(String name, int additions, int deletions, int changes) {
+        this.name = name;
+        this.additions = additions;
+        this.deletions = deletions;
+        this.changes = changes;
+    }
 }

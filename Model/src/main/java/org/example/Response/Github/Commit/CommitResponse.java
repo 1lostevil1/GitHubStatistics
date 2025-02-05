@@ -9,7 +9,7 @@ import java.util.List;
 public record CommitResponse(
         @JsonProperty("url") String url,
         @JsonProperty("sha") String sha,
-        @JsonProperty("files") List<File> files,
+        @JsonProperty("files") List<FileResponse> files,
         @JsonProperty("stats") Stats stats,
         @JsonProperty("author") Author author
 ) {

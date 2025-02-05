@@ -1,24 +1,24 @@
 package org.example.Client;
 
+import lombok.AllArgsConstructor;
 import org.example.Request.Github.UpdateRequest;
+import org.example.Request.User.SubscriptionRequest;
+import org.example.Response.User.SubscriptionResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatusCode;
 import reactor.core.publisher.Mono;
 
-public class UserClient {
+@AllArgsConstructor
+public class StatisticsClient {
 
     private final WebClient webClient;
 
-    public UserClient(WebClient webClient) {
-        this.webClient = webClient;
-    }
-
-    public void sendUpdate(UpdateRequest updateRequest) {
+    public void sendSubscription(SubscriptionRequest subscriptionRequest) {
         webClient.post()
-                .uri("/api/branches/updates")
-                .body(Mono.just(updateRequest), UpdateRequest.class)
+                .uri("/stat/recentlyAdded")
+                .body(Mono.just(subscriptionRequest), SubscriptionRequest.class)
                 .retrieve()
                 .onStatus(
                         HttpStatusCode::is4xxClientError,

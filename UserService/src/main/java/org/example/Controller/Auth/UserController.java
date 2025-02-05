@@ -2,13 +2,17 @@ package org.example.Controller.Auth;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.DTO.SubscriptionDTO;
 import org.example.DTO.UserDTO;
 import org.example.Exception.RepeatedRegistrationException;
 import org.example.Exception.WrongDataException;
 import org.example.Request.User.AuthTokenRequest;
 import org.example.Request.User.RegistrationRequest;
+import org.example.Request.User.SubscriptionRequest;
 import org.example.Response.User.AuthTokenResponse;
 import org.example.Response.User.RegistrationResponse;
+import org.example.Response.User.SubscriptionResponse;
+import org.example.Service.SubscriptionService;
 import org.example.Service.UserService;
 import org.example.Utils.JwtTokenUtils;
 import org.springframework.http.HttpStatus;
@@ -24,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 @Slf4j
-public class AuthController {
+public class UserController {
 
 
     private final UserService userService;
@@ -32,6 +36,8 @@ public class AuthController {
     private final JwtTokenUtils jwtTokenUtils;
 
     private final AuthenticationManager authenticationManager;
+
+    private final SubscriptionService subscriptionService;
 
 
     @PostMapping("/signup")
@@ -52,9 +58,9 @@ public class AuthController {
     }
 
 
-    @GetMapping("/secured/info")
-    public String secured() {
-        return "Secured data";
+    @PostMapping("/secured/subscribe")
+    public ResponseEntity<?> subscribe(@RequestBody SubscriptionRequest subscriptionRequest) {
+      return   subscriptionService.subscribe(subscriptionRequest);
     }
 
 

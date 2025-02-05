@@ -1,4 +1,4 @@
-package org.example.Config;
+package org.example.Config.SecurityConfig;
 
 import lombok.RequiredArgsConstructor;
 import org.example.Service.UserService;

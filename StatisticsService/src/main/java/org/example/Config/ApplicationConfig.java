@@ -8,7 +8,7 @@ import java.time.Duration;
 
 @ConfigurationProperties(prefix = "app", ignoreUnknownFields = true)
 public record ApplicationConfig(
-        @NotNull String baseUrlStatistics,
+        @NotNull String baseUrlUserService,
         @NotNull String baseUrlGitHub,
         @NotNull String gitHubToken,
         @Bean Scheduler scheduler) {

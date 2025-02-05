@@ -22,7 +22,7 @@ public class BranchEntity {
     private Long id;
     private String owner;
     private String repo;
-    private String branch;
+    private String name;
     private OffsetDateTime timestamp;
 
 
@@ -42,14 +42,14 @@ public class BranchEntity {
     public BranchEntity( String owner, String repo, String branchName, OffsetDateTime checkAt) {
         this.owner = owner;
         this.repo = repo;
-        this.branch = branchName;
+        this.name = branchName;
         this.timestamp = checkAt;
     }
 
     public BranchEntity( String owner, String repo, String branchName, OffsetDateTime checkAt, Set<UserEntity> users) {
         this.owner = owner;
         this.repo = repo;
-        this.branch = branchName;
+        this.name = branchName;
         this.timestamp = checkAt;
         this.users = users;
     }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class BranchMapper {
 
     public BranchDTO branchEntityToDTO(BranchEntity entity){
-        return  new BranchDTO(entity.getOwner(), entity.getRepo(), entity.getBranch(), entity.getTimestamp());
+        return  new BranchDTO(entity.getOwner(), entity.getRepo(), entity.getName(), entity.getTimestamp());
     }
 
     public BranchEntity dtoToBranchEntity(BranchDTO dto){

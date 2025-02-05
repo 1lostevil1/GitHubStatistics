@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record File(
+public record FileResponse(
         @JsonProperty("filename") String filename,
-        @JsonProperty("status") String status,
+        @JsonProperty("status") FileStatus status,
         @JsonProperty("additions") int additions,
         @JsonProperty("deletions") int deletions,
         @JsonProperty("changes") int changes,

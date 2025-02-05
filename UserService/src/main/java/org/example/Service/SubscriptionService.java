@@ -1,35 +1,50 @@
 package org.example.Service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.Client.StatisticsClient;
 import org.example.DTO.SubscriptionDTO;
 import org.example.Entities.Github.BranchEntity;
 import org.example.Entities.User.UserEntity;
 import org.example.Exception.RepeatedSubscriptionException;
 import org.example.Repository.BranchRepo;
 import org.example.Repository.UserRepo;
+import org.example.Request.User.SubscriptionRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class SubscriptionService {
 
     private final BranchRepo branchRepo;
+
     private final UserRepo userRepo;
 
-    public ResponseEntity<?> subscribe(SubscriptionDTO subscriptionDTO) {
+    private final StatisticsClient statisticsClient;
 
-        UserEntity userEntity = userRepo.findByUsername(subscriptionDTO.username()).orElseThrow();
 
-        Optional<BranchEntity> branchEntityOptional = branchRepo.findByBranch(subscriptionDTO.branchName());
+    public ResponseEntity<?> subscribe(SubscriptionRequest subscriptionRequest) {
+
+        Optional<UserEntity> userEntityOptional = userRepo.findByUsername(subscriptionRequest.username());
+
+        if(userEntityOptional.isEmpty()) {
+            return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Пользователь отсутствует в бд"), HttpStatus.BAD_REQUEST);
+        }
+
+        UserEntity userEntity = userEntityOptional.get();
+
+        Optional<BranchEntity> branchEntityOptional = branchRepo.findByName(subscriptionRequest.branchName());
 
         if (branchEntityOptional.isPresent()) {
 
 
-                if (userEntity.getBranches().stream().anyMatch(branch -> branch.getBranch().equals(subscriptionDTO.branchName()))) {
+                if (userEntity.getBranches().stream().anyMatch(branch -> branch.getName().equals(subscriptionRequest.branchName()))) {
 
                     return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Такая ветка уже отслеживается"), HttpStatus.BAD_REQUEST);
                 }
@@ -39,14 +54,17 @@ public class SubscriptionService {
 
         } else {
 
-            BranchEntity branchEntity = new BranchEntity(subscriptionDTO.owner(), subscriptionDTO.repo(), subscriptionDTO.branchName(), null);
+            BranchEntity branchEntity = new BranchEntity(subscriptionRequest.owner(), subscriptionRequest.repo(), subscriptionRequest.branchName(), OffsetDateTime.now().minusYears(30));
             userEntity.getBranches().add(branchEntity);
             branchRepo.saveAndFlush(branchEntity);
+            log.info("sended sub info TO STAT SERVICE");
+            statisticsClient.sendSubscription(subscriptionRequest);
+
         }
 
 
         userRepo.saveAndFlush(userEntity);
-        return  ResponseEntity.ok(subscriptionDTO);
+        return  ResponseEntity.ok(subscriptionRequest);
 
 
     }

@@ -45,10 +45,9 @@ public class UserService implements UserDetailsService {
     }
 
 
-    public UserDTO createNewUser(UserDTO userDTO) {
+    public void createNewUser(UserDTO userDTO) {
 
         UserDTO userWithEncodedPassword = new UserDTO(userDTO.username(), userDTO.email(), passwordEncoder.encode(userDTO.password()));
         userRepo.saveAndFlush(userMapper.UserDTOToUserEntity(userWithEncodedPassword));
-        return  userWithEncodedPassword;
     }
 }
