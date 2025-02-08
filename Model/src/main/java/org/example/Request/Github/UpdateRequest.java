@@ -6,9 +6,6 @@ import org.example.Response.Github.Commit.FileResponse;
 import java.util.List;
 
 public record UpdateRequest(
-        @JsonProperty("owner") String owner,
-        @JsonProperty("repo") String repo,
-        @JsonProperty("branchName") String branchName,
+        @JsonProperty("url") String url,
         @JsonProperty("files") List<FileResponse> files
-        ) {
-}
+        ) { }

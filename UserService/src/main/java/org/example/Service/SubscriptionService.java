@@ -3,9 +3,8 @@ package org.example.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.Client.StatisticsClient;
-import org.example.DTO.SubscriptionDTO;
-import org.example.Entities.Github.BranchEntity;
-import org.example.Entities.User.UserEntity;
+import org.example.Entities.BranchEntity;
+import org.example.Entities.UserEntity;
 import org.example.Exception.RepeatedSubscriptionException;
 import org.example.Repository.BranchRepo;
 import org.example.Repository.UserRepo;
@@ -39,12 +38,12 @@ public class SubscriptionService {
 
         UserEntity userEntity = userEntityOptional.get();
 
-        Optional<BranchEntity> branchEntityOptional = branchRepo.findByName(subscriptionRequest.branchName());
+        Optional<BranchEntity> branchEntityOptional = branchRepo.findByUrl(subscriptionRequest.url());
 
         if (branchEntityOptional.isPresent()) {
 
 
-                if (userEntity.getBranches().stream().anyMatch(branch -> branch.getName().equals(subscriptionRequest.branchName()))) {
+                if (userEntity.getBranches().stream().anyMatch(branch -> branch.getUrl().equals(subscriptionRequest.url()))) {
 
                     return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Такая ветка уже отслеживается"), HttpStatus.BAD_REQUEST);
                 }
@@ -53,8 +52,8 @@ public class SubscriptionService {
 
 
         } else {
-
-            BranchEntity branchEntity = new BranchEntity(subscriptionRequest.owner(), subscriptionRequest.repo(), subscriptionRequest.branchName(), OffsetDateTime.now().minusYears(30));
+            //TODO Добавлять в бд уже после лучше наверное
+            BranchEntity branchEntity = new BranchEntity(subscriptionRequest.url(), OffsetDateTime.now().minusYears(30));
             userEntity.getBranches().add(branchEntity);
             branchRepo.saveAndFlush(branchEntity);
             log.info("sended sub info TO STAT SERVICE");

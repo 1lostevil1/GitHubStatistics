@@ -10,8 +10,4 @@ public class BranchMapper {
     public BranchDTO branchEntityToDTO(BranchEntity entity){
         return  new BranchDTO(entity.getUrl(), entity.getCheckAt());
     }
-
-    public BranchEntity dtoToBranchEntity(BranchDTO dto){
-        return new BranchEntity(dto.url(), dto.checkAt());
-    }
 }

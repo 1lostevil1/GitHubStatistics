@@ -1,11 +1,10 @@
-package org.example.Entities.User;
+package org.example.Entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.Entities.Github.BranchEntity;
 
 import java.util.HashSet;
 import java.util.Set;

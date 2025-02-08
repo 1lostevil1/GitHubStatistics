@@ -1,4 +1,4 @@
-package org.example.DTO;
+package org.example.Request.Github;
 
 import java.time.OffsetDateTime;
 

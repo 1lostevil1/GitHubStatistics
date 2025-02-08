@@ -1,7 +1,6 @@
 package org.example.Repository;
 
-import org.example.Entities.Github.BranchEntity;
-import org.example.Entities.Github.FileEntity;
+import org.example.Entities.FileEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -9,14 +8,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 @Repository
 public interface FileRepo extends JpaRepository<FileEntity, Long> {
 
     @Transactional
-    Optional<FileEntity> findByName(String branch);
+    Optional<FileEntity> findByName(String fileName);
 
     @Modifying
     @Transactional

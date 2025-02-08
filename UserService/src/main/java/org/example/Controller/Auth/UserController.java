@@ -21,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,6 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
 
     private final SubscriptionService subscriptionService;
-
 
     @PostMapping("/signup")
     public ResponseEntity<?> registration(@Validated @RequestBody RegistrationRequest registrationRequest) {
@@ -64,7 +64,10 @@ public class UserController {
     }
 
 
-
+    @GetMapping("/secured/checkToken")
+    public boolean checkToken(){
+        return  true;
+    }
 
     @PostMapping("/createAuthToken")
     public ResponseEntity<?> createAuthToken(@Validated @RequestBody AuthTokenRequest authTokenRequest) {

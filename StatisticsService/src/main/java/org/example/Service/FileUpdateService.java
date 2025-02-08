@@ -1,13 +1,19 @@
 package org.example.Service;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.example.DTO.FileDTO;
-import org.example.Entities.Github.FileEntity;
+import org.example.Entities.BranchEntity;
+import org.example.Entities.CommitEntity;
+import org.example.Entities.FileEntity;
+import org.example.Repository.BranchRepo;
+import org.example.Repository.CommitRepo;
 import org.example.Repository.FileRepo;
-import org.example.Utils.FileMapper;
+import org.example.Response.Github.Commit.FileResponse;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,74 +22,56 @@ import java.util.Optional;
 @Slf4j
 public class FileUpdateService {
 
-    private final FileMapper fileMapper;
-
     private final FileRepo fileRepo;
 
-    public FileUpdateService(FileMapper fileMapper, FileRepo fileRepo) {
-        this.fileMapper = fileMapper;
+    private final CommitRepo commitRepo;
 
+    private final BranchRepo branchRepo;
+
+    public FileUpdateService(FileRepo fileRepo, CommitRepo commitRepo, BranchRepo branchRepo) {
         this.fileRepo = fileRepo;
+        this.commitRepo = commitRepo;
+        this.branchRepo = branchRepo;
     }
 
-    public void processFiles(List<FileDTO> files){
+    void processFiles(String branchUrl, List<FileResponse> files) {
 
-        if(!files.isEmpty()){
+        if (!files.isEmpty()) {
 
-            for(FileDTO fileDTO : files){
+            BranchEntity branchEntity = branchRepo.findByUrl(branchUrl).orElseThrow();
 
-                switch (fileDTO.status()){
+            for (FileResponse fileResponse : files) {
+
+                Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileResponse.filename());
+
+                switch (fileResponse.status()) {
+
                     case ADDED -> {
-                      fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
-                        log.info("{} ADDED", fileDTO);
+
+                        addedStateProcessing(branchEntity, fileEntityOptional, fileResponse);
                     }
+
+
                     case REMOVED -> {
 
-                        if(fileRepo.findByName(fileDTO.filename()).isPresent()){
-                            fileRepo.updateName(fileDTO.filename()+" $REMOVED$", fileDTO.filename());
-                        }
-                        else {
-                            fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
-                        }
-                        log.info("{} REMOVED", fileDTO);
+                        removedStateProcessing(branchEntity, fileEntityOptional, fileResponse);
                     }
 
                     case RENAMED -> {
-
-                        if(fileRepo.findByName(fileDTO.filename()).isPresent()){
-                            fileRepo.updateName(fileDTO.filename()+" $RENAMED$", fileDTO.previousFilename());
-                        }
-                        else {
-                            fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
-                        }
-                        log.info("{} RENAMED ", fileDTO);
+                        renamedStateProcessing(branchEntity, fileEntityOptional, fileResponse);
                     }
 
                     case MODIFIED -> {
-                        log.info("{} MODIFIED ", fileDTO);
-                        try {
-                            Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileDTO.filename());
 
-                            if (fileEntityOptional.isPresent()) {
-                                FileEntity fileEntity = fileEntityOptional.get();
-                                fileEntity.setAdditions(fileDTO.additions());
-                                fileEntity.setDeletions(fileDTO.deletions());
-                                fileEntity.setChanges(fileDTO.changes());
-                                fileRepo.saveAndFlush(fileEntity);
-                            } else {
-                                fileRepo.saveAndFlush(fileMapper.DTOToFileEntity(fileDTO));
-                            }
-                        } catch (Exception e) {
-                            log.info(e.getMessage());
-                        }
+                        modifiedStateProcessing(branchEntity, fileEntityOptional, fileResponse);
                     }
 
                     case CHANGED -> {
-                        log.info("file {} changed", fileDTO.filename());
+                        log.info("file {} changed", fileResponse.filename());
                     }
 
                     default -> {
-                        log.info("file status {} ", fileDTO.status());
+                        log.info("file status {} ", fileResponse.status());
                     }
 
                 }
@@ -92,4 +80,92 @@ public class FileUpdateService {
 
         }
     }
+
+
+    void addedStateProcessing(BranchEntity branchEntity, Optional<FileEntity> fileEntityOptional, FileResponse fileResponse) {
+
+        CommitEntity commitEntity;
+
+        if (fileEntityOptional.isEmpty()) {
+            fileRepo.saveAndFlush(new FileEntity(fileResponse.filename()));
+
+            commitEntity = new CommitEntity(fileEntityOptional.get(),
+                    branchEntity, fileResponse.additions(),
+                    fileResponse.deletions(),
+                    fileResponse.changes(),
+                    fileResponse.previousFilename(),
+                    fileResponse.status().name());
+        } else {
+
+            commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get()).orElseThrow();
+
+            commitEntity.setState(fileResponse.status().name());
+            commitEntity.setAdditions(fileResponse.additions());
+            commitEntity.setDeletions(fileResponse.deletions());
+            commitEntity.setChanges(fileResponse.changes());
+
+        }
+
+        commitRepo.saveAndFlush(commitEntity);
+
+    }
+
+
+    void removedStateProcessing(BranchEntity branchEntity, Optional<FileEntity> fileEntityOptional, FileResponse fileResponse) {
+
+        CommitEntity commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get()).orElseThrow();
+        commitEntity.setState(fileResponse.status().name());
+        commitRepo.saveAndFlush(commitEntity);
+
+    }
+
+    void renamedStateProcessing(BranchEntity branchEntity, Optional<FileEntity> fileEntityOptional, FileResponse fileResponse) {
+
+        FileEntity fileEntity = fileEntityOptional.orElseThrow();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        CommitEntity commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntity).orElseThrow();
+
+        try {
+            List<String> previousNames = objectMapper.readValue(commitEntity.getPreviousNames(), new TypeReference<List<String>>() {
+            });
+
+            commitEntity.setState(fileResponse.status().name());
+            List<String> newPreviousNames = new ArrayList<>();
+
+            if (previousNames.isEmpty()) {
+
+                newPreviousNames.add(fileResponse.previousFilename());
+
+            } else {
+
+                newPreviousNames.addAll(previousNames);
+                newPreviousNames.add(fileResponse.previousFilename());
+
+            }
+            commitEntity.setPreviousNames(objectMapper.writeValueAsString(newPreviousNames));
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    void modifiedStateProcessing(BranchEntity branchEntity, Optional<FileEntity> fileEntityOptional, FileResponse fileResponse) {
+
+        FileEntity fileEntity = fileEntityOptional.orElseThrow();
+
+        CommitEntity commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntity).orElseThrow();
+
+        commitEntity.setState(fileResponse.status().name());
+        commitEntity.setAdditions(commitEntity.getAdditions() + fileResponse.additions());
+        commitEntity.setDeletions(commitEntity.getDeletions() + fileResponse.deletions());
+        commitEntity.setChanges(commitEntity.getChanges() + fileResponse.changes());
+        commitRepo.saveAndFlush(commitEntity);
+
+
+    }
+
+
 }

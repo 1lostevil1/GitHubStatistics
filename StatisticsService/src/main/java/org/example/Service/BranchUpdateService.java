@@ -4,20 +4,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.Client.GitHubClient;
 import org.example.Client.UserClient;
 import org.example.DTO.BranchDTO;
-import org.example.DTO.DatedListCommitRequest;
-import org.example.DTO.FileDTO;
+import org.example.DTO.ParsedBranchDTO;
+import org.example.Entities.BranchEntity;
+import org.example.Parser.UrlParser;
 import org.example.Repository.BranchRepo;
-import org.example.Repository.FileRepo;
+import org.example.Repository.CommitRepo;
+import org.example.Request.Github.DatedListCommitRequest;
 import org.example.Request.Github.UpdateRequest;
 import org.example.Response.Github.Commit.CommitResponse;
 import org.example.Response.Github.Commit.FileResponse;
-import org.example.Utils.BranchMapper;
-import org.example.Utils.FileMapper;
+import org.example.Response.Github.Commit.FileStatus;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,32 +26,28 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class BranchUpdateService {
 
+    private final BranchRepo branchRepo;
+
     private final GitHubClient gitHubClient;
 
     private final UserClient userClient;
 
-    private final FileMapper fileMapper;
-
-    private final BranchRepo branchRepo;
-
-    private final BranchMapper branchMapper;
+    private final UrlParser urlParser;
 
     private final ExecutorService executorService;
 
     private final FileUpdateService fileUpdateService;
+    private final CommitRepo commitRepo;
 
 
-
-    public BranchUpdateService (GitHubClient gitHubClient, BranchRepo branchRepo, UserClient userClient, FileRepo fileRepo, FileMapper fileMapper, BranchMapper branchMapper, FileUpdateService fileUpdateService) {
-
-        this.gitHubClient = gitHubClient;
+    public BranchUpdateService(BranchRepo branchRepo, GitHubClient gitHubClient, UserClient userClient, UrlParser urlParser, FileUpdateService fileUpdateService, CommitRepo commitRepo) {
         this.branchRepo = branchRepo;
+        this.gitHubClient = gitHubClient;
         this.userClient = userClient;
-        this.fileMapper = fileMapper;
-        this.branchMapper = branchMapper;
-        this.fileUpdateService = fileUpdateService;
+        this.urlParser = urlParser;
         this.executorService = Executors.newFixedThreadPool(10);
-
+        this.fileUpdateService = fileUpdateService;
+        this.commitRepo = commitRepo;
     }
 
 
@@ -63,29 +59,49 @@ public class BranchUpdateService {
 
 //                executorService.submit(() -> {
 
+                ParsedBranchDTO parsedBranchDTO = urlParser.parse(link.url());
 
-                    DatedListCommitRequest datedListCommitRequest = branchMapper.branchDTOtoDatedListCommitRequest(link);
-                    List<CommitResponse> commitResponses = gitHubClient.getInto(datedListCommitRequest);
+                DatedListCommitRequest datedListCommitRequest = new DatedListCommitRequest(parsedBranchDTO.owner(),
+                        parsedBranchDTO.repo(),
+                        parsedBranchDTO.branchName(),
+                        link.checkAt(), OffsetDateTime.now()
+                );
 
-                    if (!commitResponses.isEmpty()) {
-                        UpdateRequest updateRequest = branchMapper.commitListToUpdateRequest(link, commitResponses);
+                List<CommitResponse> commitResponses = gitHubClient.getInto(datedListCommitRequest);
 
-                        List<FileDTO> files = updateRequest.files().stream().map(fileMapper::fileResponseToDTO).toList();
 
-                        fileUpdateService.processFiles(files);
+                if (!commitResponses.isEmpty()) {
 
-                        log.info("sending updates...");
+                    for (int i = commitResponses.size() - 1; i >= 0; i--) {
 
-                        userClient.sendUpdate(updateRequest);
+                        fileUpdateService.processFiles(link.url(), commitResponses.get(i).files());
                     }
 
+                    BranchEntity branch = branchRepo.findByUrl(link.url()).orElseThrow();
 
-                    branchRepo.updateTimestampByOwnerRepoAndBranchName(
-                           OffsetDateTime.now(),
-                            link.owner(),
-                            link.repo(),
-                            link.branchName()
-                    );
+                    List<FileResponse> fileResponses = new ArrayList<>();
+
+                    commitRepo.findByBranch(branch).forEach(commitEntity -> {
+
+                        FileResponse fileResponse = new FileResponse(commitEntity.getFile().getName(),
+                                                                     FileStatus.valueOf(commitEntity.getState()),
+                                                                     commitEntity.getAdditions(),
+                                                                     commitEntity.getDeletions(),
+                                                                     commitEntity.getChanges(),
+                                                                     commitEntity.getPreviousNames());
+                        fileResponses.add(fileResponse);
+                    });
+
+
+                    UpdateRequest updateRequest = new UpdateRequest(link.url(), fileResponses);
+                    userClient.sendUpdate(updateRequest);
+                }
+
+
+                branchRepo.updateTimestampByOwnerRepoAndBranchName(
+                        OffsetDateTime.now(),
+                        link.url()
+                );
 
 //                });
             }

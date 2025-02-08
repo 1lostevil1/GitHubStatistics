@@ -2,7 +2,7 @@ package org.example.Service;
 
 import lombok.AllArgsConstructor;
 import org.example.DTO.UserDTO;
-import org.example.Entities.User.UserEntity;
+import org.example.Entities.UserEntity;
 import org.example.Repository.UserRepo;
 import org.example.Mapper.UserMapper;
 import org.springframework.security.core.userdetails.User;

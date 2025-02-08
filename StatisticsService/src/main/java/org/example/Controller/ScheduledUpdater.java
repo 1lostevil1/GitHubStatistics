@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.DTO.BranchDTO;
 import org.example.Repository.BranchRepo;
 import org.example.Service.BranchUpdateService;
-import org.example.Utils.BranchMapper;
+import org.example.Mapper.BranchMapper;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class ScheduledUpdater {
     log.info("Sheduling task");
         OffsetDateTime time = OffsetDateTime.now().minusMinutes(5);
 
-        List<BranchDTO> links = branchRepo.findAllByTimestampBefore(time).stream().map(branchMapper::branchEntityToDTO).toList();
+        List<BranchDTO> links = branchRepo.findAllByCheckAtBefore(time).stream().map(branchMapper::branchEntityToDTO).toList();
 
         branchUpdateService.checkUpdates(links);
 
