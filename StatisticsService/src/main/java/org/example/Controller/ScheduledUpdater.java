@@ -3,6 +3,7 @@ package org.example.Controller;
 import lombok.extern.slf4j.Slf4j;
 import org.example.DTO.BranchDTO;
 import org.example.Repository.BranchRepo;
+import org.example.Request.User.SubscriptionRequest;
 import org.example.Service.BranchUpdateService;
 import org.example.Mapper.BranchMapper;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -37,10 +38,11 @@ public class ScheduledUpdater {
 
     }
 
-    @Scheduled(fixedDelayString = "#{scheduler.interval}")
-    public void task() {
 
-    log.info("Sheduling task");
+    @Scheduled(fixedDelayString = "#{scheduler.interval}")
+    public void ScheduledTask() {
+
+    log.info("Scheduling task");
         OffsetDateTime time = OffsetDateTime.now().minusMinutes(5);
 
         List<BranchDTO> links = branchRepo.findAllByCheckAtBefore(time).stream().map(branchMapper::branchEntityToDTO).toList();

@@ -23,10 +23,10 @@ public class GitHubController {
     public  void recentlyAddedCheck(@RequestBody SubscriptionRequest subscriptionRequest) {
 
         log.info("recentlyAddedCheck {}", subscriptionRequest);
-    branchUpdateService.checkUpdates(List.of(new BranchDTO(
-            subscriptionRequest.url(),
-            OffsetDateTime.now().minusYears(30)))
-    );
+    branchUpdateService.initialSub(new BranchDTO(
+                                                 subscriptionRequest.url(),
+                                                 OffsetDateTime.now().minusYears(30))
+                                                );
 
     }
 }

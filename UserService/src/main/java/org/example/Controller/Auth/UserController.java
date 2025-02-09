@@ -59,8 +59,8 @@ public class UserController {
 
 
     @PostMapping("/secured/subscribe")
-    public ResponseEntity<?> subscribe(@RequestBody SubscriptionRequest subscriptionRequest) {
-      return   subscriptionService.subscribe(subscriptionRequest);
+    public ResponseEntity<?> subscribe(@RequestHeader("Authorization") String jwtToken,@RequestBody SubscriptionRequest subscriptionRequest) {
+      return   subscriptionService.subscribe(subscriptionRequest, jwtToken);
     }
 
 

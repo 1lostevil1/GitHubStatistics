@@ -11,6 +11,7 @@ import org.example.Repository.BranchRepo;
 import org.example.Repository.CommitRepo;
 import org.example.Request.Github.DatedListCommitRequest;
 import org.example.Request.Github.UpdateRequest;
+import org.example.Request.User.SubscriptionRequest;
 import org.example.Response.Github.Commit.CommitResponse;
 import org.example.Response.Github.Commit.FileResponse;
 import org.example.Response.Github.Commit.FileStatus;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,6 +54,41 @@ public class BranchUpdateService {
     }
 
 
+
+
+
+
+
+    public void initialSub(BranchDTO link) {
+        log.info("----initial sub");
+        BranchEntity branchEntity= branchRepo.findByUrl(link.url()).orElseThrow();
+
+        UpdateRequest updateRequest;
+
+        if (branchEntity.getCheckAt().isAfter(OffsetDateTime.now())) {
+
+            List<CommitResponse> commitResponses = getCommits(link);
+            log.info(commitResponses.toString());
+            processCommits(commitResponses,link);
+            updateRequest = collectUpdateRequestFromDB(link.url());
+        }
+        else {
+            updateRequest = collectUpdateRequestFromDB(link.url());
+        }
+
+        log.info("----sending update   ---------");
+        log.info(updateRequest.toString());
+        userClient.sendUpdate(updateRequest);
+
+        branchRepo.updateCheckAtByUrl(OffsetDateTime.now(),link.url());
+    }
+
+
+
+
+
+
+
     public void checkUpdates(List<BranchDTO> links) {
 
         if (!links.isEmpty()) {
@@ -59,55 +97,78 @@ public class BranchUpdateService {
 
 //                executorService.submit(() -> {
 
-                ParsedBranchDTO parsedBranchDTO = urlParser.parse(link.url());
-
-                DatedListCommitRequest datedListCommitRequest = new DatedListCommitRequest(parsedBranchDTO.owner(),
-                        parsedBranchDTO.repo(),
-                        parsedBranchDTO.branchName(),
-                        link.checkAt(), OffsetDateTime.now()
-                );
-
-                List<CommitResponse> commitResponses = gitHubClient.getInto(datedListCommitRequest);
-
+                List<CommitResponse> commitResponses = getCommits(link);
 
                 if (!commitResponses.isEmpty()) {
 
-                    for (int i = commitResponses.size() - 1; i >= 0; i--) {
+                    processCommits(commitResponses,link);
+                    UpdateRequest updateRequest = collectUpdateRequestFromDB(link.url());
 
-                        fileUpdateService.processFiles(link.url(), commitResponses.get(i).files());
-                    }
-
-                    BranchEntity branch = branchRepo.findByUrl(link.url()).orElseThrow();
-
-                    List<FileResponse> fileResponses = new ArrayList<>();
-
-                    commitRepo.findByBranch(branch).forEach(commitEntity -> {
-
-                        FileResponse fileResponse = new FileResponse(commitEntity.getFile().getName(),
-                                                                     FileStatus.valueOf(commitEntity.getState()),
-                                                                     commitEntity.getAdditions(),
-                                                                     commitEntity.getDeletions(),
-                                                                     commitEntity.getChanges(),
-                                                                     commitEntity.getPreviousNames());
-                        fileResponses.add(fileResponse);
-                    });
-
-
-                    UpdateRequest updateRequest = new UpdateRequest(link.url(), fileResponses);
+                    log.info(updateRequest.toString());
+                    log.info("----sending update   ---------");
                     userClient.sendUpdate(updateRequest);
                 }
 
-
-                branchRepo.updateTimestampByOwnerRepoAndBranchName(
-                        OffsetDateTime.now(),
-                        link.url()
-                );
+                branchRepo.updateCheckAtByUrl(OffsetDateTime.now(),link.url());
 
 //                });
             }
 
         }
     }
+
+
+
+
+
+
+
+    private UpdateRequest collectUpdateRequestFromDB(String url) {
+
+        BranchEntity branch = branchRepo.findByUrl(url).orElseThrow();
+
+        List<FileResponse> fileResponses = new ArrayList<>();
+
+        commitRepo.findByBranch(branch).forEach(commitEntity -> {
+
+            FileResponse fileResponse = new FileResponse(commitEntity.getFile().getName(),
+                    FileStatus.valueOf(commitEntity.getState()),
+                    commitEntity.getAdditions(),
+                    commitEntity.getDeletions(),
+                    commitEntity.getChanges(),
+                    commitEntity.getPreviousNames());
+            fileResponses.add(fileResponse);
+        });
+
+        ParsedBranchDTO parsedBranchDTO = urlParser.parse(url);
+        return new UpdateRequest(parsedBranchDTO.owner()+parsedBranchDTO.repo()+parsedBranchDTO.branchName(),fileResponses);
+
+    }
+
+    private List<CommitResponse> getCommits(BranchDTO link) {
+        ParsedBranchDTO parsedBranchDTO = urlParser.parse(link.url());
+
+        log.info(parsedBranchDTO.toString());
+
+        DatedListCommitRequest datedListCommitRequest = new DatedListCommitRequest(parsedBranchDTO.owner(),
+                parsedBranchDTO.repo(),
+                parsedBranchDTO.branchName(),
+                link.checkAt(), OffsetDateTime.now().plusYears(2)
+        );
+
+        log.info(datedListCommitRequest.toString());
+
+        return gitHubClient.getInto(datedListCommitRequest);
+    }
+
+    private void processCommits(List<CommitResponse> commitResponses, BranchDTO link) {
+
+            for (int i = commitResponses.size() - 1; i >= 0; i--) {
+                log.info("-----    {}", commitResponses.get(i).sha());
+                    fileUpdateService.processFiles(link.url(), commitResponses.get(i).files());
+            }
+    }
+
 }
 
 

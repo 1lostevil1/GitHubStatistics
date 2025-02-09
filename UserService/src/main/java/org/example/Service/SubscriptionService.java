@@ -9,6 +9,7 @@ import org.example.Exception.RepeatedSubscriptionException;
 import org.example.Repository.BranchRepo;
 import org.example.Repository.UserRepo;
 import org.example.Request.User.SubscriptionRequest;
+import org.example.Utils.JwtTokenUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -27,10 +28,15 @@ public class SubscriptionService {
 
     private final StatisticsClient statisticsClient;
 
+    private  final JwtTokenUtils jwtTokenUtils;
 
-    public ResponseEntity<?> subscribe(SubscriptionRequest subscriptionRequest) {
 
-        Optional<UserEntity> userEntityOptional = userRepo.findByUsername(subscriptionRequest.username());
+    public ResponseEntity<?> subscribe(SubscriptionRequest subscriptionRequest, String token) {
+
+
+        String username = jwtTokenUtils.getUsername(token.substring(7));
+
+        Optional<UserEntity> userEntityOptional = userRepo.findByUsername(username);
 
         if(userEntityOptional.isEmpty()) {
             return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Пользователь отсутствует в бд"), HttpStatus.BAD_REQUEST);
@@ -40,7 +46,8 @@ public class SubscriptionService {
 
         Optional<BranchEntity> branchEntityOptional = branchRepo.findByUrl(subscriptionRequest.url());
 
-        if (branchEntityOptional.isPresent()) {
+        if (branchEntityOptional.isPresent())
+        {
 
 
                 if (userEntity.getBranches().stream().anyMatch(branch -> branch.getUrl().equals(subscriptionRequest.url()))) {
@@ -48,21 +55,26 @@ public class SubscriptionService {
                     return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Такая ветка уже отслеживается"), HttpStatus.BAD_REQUEST);
                 }
 
-                userEntity.getBranches().add(branchEntityOptional.get());
-
-
-        } else {
-            //TODO Добавлять в бд уже после лучше наверное
-            BranchEntity branchEntity = new BranchEntity(subscriptionRequest.url(), OffsetDateTime.now().minusYears(30));
-            userEntity.getBranches().add(branchEntity);
-            branchRepo.saveAndFlush(branchEntity);
-            log.info("sended sub info TO STAT SERVICE");
-            statisticsClient.sendSubscription(subscriptionRequest);
+                else{
+                    userEntity.getBranches().add(branchEntityOptional.get());
+                }
 
         }
 
+        else
+
+        {
+
+            BranchEntity branchEntity = new BranchEntity(subscriptionRequest.url(), OffsetDateTime.now().plusYears(30));
+            userEntity.getBranches().add(branchEntity);
+            branchRepo.saveAndFlush(branchEntity);
+        }
 
         userRepo.saveAndFlush(userEntity);
+
+        log.info("sent sub info TO STAT SERVICE");
+        statisticsClient.sendSubscription(subscriptionRequest);
+
         return  ResponseEntity.ok(subscriptionRequest);
 
 

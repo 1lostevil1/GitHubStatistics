@@ -22,10 +22,11 @@ public class WebSocketController {
     @PostMapping("/branches/updates")
     public void updateBranches(@RequestBody UpdateRequest request) {
 
-        log.info("got updates{}", request.url());
+        log.info("topic:::  /topic/{}", request.topic());
+        log.info("request:::    {}", request);
 
-//        messagingTemplate.convertAndSend("/topic/branch/" + request.owner() + request.repo() + request.branchName(), request);
-        messagingTemplate.convertAndSend("/topic/all", request);
+      messagingTemplate.convertAndSend("/topic/" + request.topic(), request);
+
 
     }
 }

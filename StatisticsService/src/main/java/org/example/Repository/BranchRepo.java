@@ -18,7 +18,7 @@ public interface BranchRepo extends JpaRepository<BranchEntity, Long> {
  @Modifying
  @Transactional
  @Query("UPDATE BranchEntity b SET b.checkAt= :timestamp WHERE b.url = :url")
- void updateTimestampByOwnerRepoAndBranchName(
+ void updateCheckAtByUrl(
          @Param("timestamp") OffsetDateTime timestamp,
          @Param("url") String url
 

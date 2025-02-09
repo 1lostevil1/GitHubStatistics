@@ -19,6 +19,16 @@ public class GitHubClient {
     }
 
     private ShaResponse[] getShaArrayPerPage(DatedListCommitRequest commitRequest, int page) {
+
+        log.info("------ROFLO-LOGI----");
+        log.info(Arrays.toString(Objects.requireNonNull(webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/repos/{owner}/{repo}/commits")
+                        .build(commitRequest.owner(), commitRequest.repo()))
+                .retrieve()
+                .bodyToMono(ShaResponse[].class)
+                .block())));
+
+
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/repos/{owner}/{repo}/commits")
                         .queryParam("page", page)
@@ -54,7 +64,6 @@ public class GitHubClient {
             if (shaArray != null && shaArray.length > 0) {
                 currentPageSize = shaArray.length;
                 page = page + 1;
-                log.info(Arrays.toString(shaArray));
                 result.addAll(Stream.of(shaArray)
                         .map(shaResponse -> getCommitInfo(commitRequest, shaResponse.sha()))
                         .toList());
