@@ -11,6 +11,7 @@ import org.example.Repository.BranchRepo;
 import org.example.Repository.CommitRepo;
 import org.example.Repository.FileRepo;
 import org.example.Response.Github.Commit.FileResponse;
+import org.example.Response.Github.Commit.FileStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class FileUpdateService {
 
             for (FileResponse fileResponse : files) {
 
-                log.info("--------file/status:::   {}   {}", fileResponse.filename(), fileResponse.status());
+                if(fileResponse.status() == FileStatus.RENAMED) log.info("--------file/status:::   {}   {}", fileResponse.filename(), fileResponse.status());
 
                 switch (fileResponse.status()) {
 
@@ -92,6 +93,7 @@ public class FileUpdateService {
 
 
         if (fileEntityOptional.isEmpty()) {
+
             FileEntity fileEntity = new FileEntity(fileResponse.filename());
             fileRepo.saveAndFlush(fileEntity);
 
@@ -101,13 +103,20 @@ public class FileUpdateService {
                     fileResponse.changes(),
                     fileResponse.previousFilename(),
                     fileResponse.status().name());
+
             commitRepo.saveAndFlush(commitEntity);
-        } else
+        }
+
+        else
+
         {
 
             Optional<CommitEntity> commitEntityOptional = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get());
+
             CommitEntity commitEntity;
+
             if (commitEntityOptional.isPresent()) {
+
                 commitEntity = commitEntityOptional.get();
                 commitEntity.setState(fileResponse.status().name());
                 commitEntity.setAdditions(fileResponse.additions());
@@ -191,7 +200,9 @@ try {
         throw new RuntimeException(e);
     }
 } catch (Exception e) {
-    log.info("no such file in DB when RENAMED, pr?:  {}", fileResponse.filename());
+    log.error("exception in RENAMED");
+    log.error("old name {}", fileResponse.previousFilename());
+    log.info("new name  {}", fileResponse.filename());
     addedStateProcessing(branchEntity, fileResponse);
 }
 

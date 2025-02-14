@@ -1,8 +1,7 @@
 package org.example.Client;
 
-import org.example.Request.Github.UpdateRequest;
+import org.example.Request.User.UpdateRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatusCode;

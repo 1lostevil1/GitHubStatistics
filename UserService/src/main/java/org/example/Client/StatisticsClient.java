@@ -2,9 +2,7 @@ package org.example.Client;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.Request.Github.UpdateRequest;
 import org.example.Request.User.SubscriptionRequest;
-import org.example.Response.User.SubscriptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;

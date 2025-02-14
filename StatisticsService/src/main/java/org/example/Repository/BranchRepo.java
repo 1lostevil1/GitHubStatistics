@@ -28,4 +28,5 @@ public interface BranchRepo extends JpaRepository<BranchEntity, Long> {
 
  Optional<BranchEntity> findByUrl(String url);
 
+
 }

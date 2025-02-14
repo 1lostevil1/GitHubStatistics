@@ -36,7 +36,12 @@ public class UserEntity {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(mappedBy = "users")
+    @ManyToMany
+    @JoinTable(
+            name = "user_branch",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "branch_id")
+    )
     private Set<BranchEntity> branches = new HashSet<>();
 
     }

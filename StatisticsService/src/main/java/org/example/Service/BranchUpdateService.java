@@ -10,8 +10,7 @@ import org.example.Parser.UrlParser;
 import org.example.Repository.BranchRepo;
 import org.example.Repository.CommitRepo;
 import org.example.Request.Github.DatedListCommitRequest;
-import org.example.Request.Github.UpdateRequest;
-import org.example.Request.User.SubscriptionRequest;
+import org.example.Request.User.UpdateRequest;
 import org.example.Response.Github.Commit.CommitResponse;
 import org.example.Response.Github.Commit.FileResponse;
 import org.example.Response.Github.Commit.FileStatus;
@@ -20,8 +19,6 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,35 +28,23 @@ public class BranchUpdateService {
 
     private final BranchRepo branchRepo;
 
+    private final CommitRepo commitRepo;
+
     private final GitHubClient gitHubClient;
 
     private final UserClient userClient;
 
     private final UrlParser urlParser;
 
-    private final ExecutorService executorService;
-
     private final FileUpdateService fileUpdateService;
-    private final CommitRepo commitRepo;
 
-
-    public BranchUpdateService(BranchRepo branchRepo, GitHubClient gitHubClient, UserClient userClient, UrlParser urlParser, FileUpdateService fileUpdateService, CommitRepo commitRepo) {
-        this.branchRepo = branchRepo;
-        this.gitHubClient = gitHubClient;
-        this.userClient = userClient;
-        this.urlParser = urlParser;
-        this.executorService = Executors.newFixedThreadPool(10);
-        this.fileUpdateService = fileUpdateService;
-        this.commitRepo = commitRepo;
-    }
-
-
-
-
-
+    private final ExecutorService executorService ;
 
 
     public void initialSub(BranchDTO link) {
+
+
+
         log.info("----initial sub");
         BranchEntity branchEntity= branchRepo.findByUrl(link.url()).orElseThrow();
 
@@ -76,7 +61,7 @@ public class BranchUpdateService {
             updateRequest = collectUpdateRequestFromDB(link.url());
         }
 
-        log.info("----sending update   ---------");
+        log.info("--------- sending update   ---------");
         log.info(updateRequest.toString());
         userClient.sendUpdate(updateRequest);
 
@@ -87,6 +72,15 @@ public class BranchUpdateService {
 
 
 
+    public BranchUpdateService(BranchRepo branchRepo, GitHubClient gitHubClient, UserClient userClient, UrlParser urlParser, FileUpdateService fileUpdateService, CommitRepo commitRepo) {
+        this.branchRepo = branchRepo;
+        this.gitHubClient = gitHubClient;
+        this.userClient = userClient;
+        this.urlParser = urlParser;
+        this.executorService = Executors.newFixedThreadPool(30);
+        this.fileUpdateService = fileUpdateService;
+        this.commitRepo = commitRepo;
+    }
 
 
     public void checkUpdates(List<BranchDTO> links) {
@@ -94,8 +88,6 @@ public class BranchUpdateService {
         if (!links.isEmpty()) {
 
             for (BranchDTO link : links) {
-
-//                executorService.submit(() -> {
 
                 List<CommitResponse> commitResponses = getCommits(link);
 
@@ -111,7 +103,6 @@ public class BranchUpdateService {
 
                 branchRepo.updateCheckAtByUrl(OffsetDateTime.now(),link.url());
 
-//                });
             }
 
         }
@@ -140,8 +131,8 @@ public class BranchUpdateService {
             fileResponses.add(fileResponse);
         });
 
-        ParsedBranchDTO parsedBranchDTO = urlParser.parse(url);
-        return new UpdateRequest(parsedBranchDTO.owner()+parsedBranchDTO.repo()+parsedBranchDTO.branchName(),fileResponses);
+
+        return new UpdateRequest(url,fileResponses);
 
     }
 

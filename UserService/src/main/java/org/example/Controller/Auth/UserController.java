@@ -47,7 +47,7 @@ public class UserController {
             return new ResponseEntity<>(new RepeatedRegistrationException(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
 
-        if (userService.findByEmail(registrationRequest.username()).isPresent()) {
+        if (userService.findByEmail(registrationRequest.email()).isPresent()) {
             return new ResponseEntity<>(new RepeatedRegistrationException(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным email уже существует"), HttpStatus.BAD_REQUEST);
         }
 

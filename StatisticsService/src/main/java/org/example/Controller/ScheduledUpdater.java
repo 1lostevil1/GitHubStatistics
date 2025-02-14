@@ -42,7 +42,6 @@ public class ScheduledUpdater {
     @Scheduled(fixedDelayString = "#{scheduler.interval}")
     public void ScheduledTask() {
 
-    log.info("Scheduling task");
         OffsetDateTime time = OffsetDateTime.now().minusMinutes(5);
 
         List<BranchDTO> links = branchRepo.findAllByCheckAtBefore(time).stream().map(branchMapper::branchEntityToDTO).toList();

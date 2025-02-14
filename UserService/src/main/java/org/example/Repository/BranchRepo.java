@@ -12,4 +12,7 @@ public interface BranchRepo extends JpaRepository<BranchEntity, Long> {
 
     @Transactional
     Optional<BranchEntity> findByUrl(String url);
+
+    @Transactional
+    void removeBranchEntityByUrl(String url);
 }

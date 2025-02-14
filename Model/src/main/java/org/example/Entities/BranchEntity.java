@@ -26,12 +26,7 @@ public class BranchEntity {
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CommitEntity> commits;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_branch",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "branch_id")
-    )
+    @ManyToMany(mappedBy = "branches")
     private Set<UserEntity> users = new HashSet<>();
 
 

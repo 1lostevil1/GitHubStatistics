@@ -16,7 +16,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Включаем брокер для топиков, по которым мы будем слать сообщения клиентам
         config.enableSimpleBroker("/topic");
-        // Префикс для сообщений, которые отправляет клиент (например, @MessageMapping("/somePath"))
+
         config.setApplicationDestinationPrefixes("/app");
     }
 
