@@ -1,0 +1,135 @@
+.subscription-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  
+  .header {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+  
+  .controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .controls input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+  
+  .controls input:focus {
+    border-color: #2ea44f;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46,164,79,0.1);
+  }
+  
+  .controls button {
+    padding: 0.75rem 1.5rem;
+    background: #2ea44f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  
+  .controls button:hover {
+    background: #22863a;
+    transform: translateY(-1px);
+  }
+  
+  .controls button:active {
+    transform: translateY(0);
+  }
+  
+  .error {
+    color: #dc3545;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    background: #ffeef0;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+  }
+  
+  .visualization {
+    display: grid;
+    gap: 2rem;
+  }
+  
+  .branch {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  
+  .branch:hover {
+    transform: translateY(-2px);
+  }
+  
+  .branch-info {
+    padding: 1rem;
+    background: #fafbfc;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .branch-info h3 {
+    margin: 0;
+    color: #24292e;
+    font-size: 1.25rem;
+  }
+  
+  .stats {
+    display: flex;
+    gap: 1.5rem;
+    color: #586069;
+    font-size: 0.9rem;
+  }
+  
+  .treemap {
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .treemap rect {
+    transition: all 0.2s ease;
+    stroke: #fff;
+    stroke-width: 0.5px;
+  }
+  
+  .treemap rect:hover {
+    opacity: 0.9;
+  }
+  
+  @media (max-width: 768px) {
+    .subscription-container {
+      padding: 1rem;
+    }
+    
+    .branch-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    
+    .stats {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }

@@ -40,6 +40,8 @@ public class UserController {
 
     private final SubscriptionService subscriptionService;
 
+
+
     @PostMapping("/signup")
     public ResponseEntity<?> registration(@Validated @RequestBody RegistrationRequest registrationRequest) {
 
@@ -58,20 +60,12 @@ public class UserController {
     }
 
 
-    @PostMapping("/secured/subscribe")
-    public ResponseEntity<?> subscribe(@RequestHeader("Authorization") String jwtToken,@RequestBody SubscriptionRequest subscriptionRequest) {
-      return   subscriptionService.subscribe(subscriptionRequest, jwtToken);
-    }
-
-
-    @GetMapping("/secured/checkToken")
-    public boolean checkToken(){
-        return  true;
-    }
 
     @PostMapping("/createAuthToken")
     public ResponseEntity<?> createAuthToken(@Validated @RequestBody AuthTokenRequest authTokenRequest) {
+
         log.info("{} requested token", authTokenRequest.username());
+
         try {
 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authTokenRequest.username(), authTokenRequest.password()));
@@ -90,4 +84,16 @@ public class UserController {
     }
 
 
+    @PostMapping("/secured/subscribe")
+    public ResponseEntity<?> subscribe(@RequestHeader("Authorization") String jwtToken, @RequestBody SubscriptionRequest subscriptionRequest) {
+        return subscriptionService.subscribe(subscriptionRequest, jwtToken);
+    }
+
+
+    @GetMapping("/secured/checkToken")
+    public boolean checkToken() {
+        return true;
+    }
 }
+
+

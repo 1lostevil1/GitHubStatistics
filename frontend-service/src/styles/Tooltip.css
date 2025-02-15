@@ -1,0 +1,64 @@
+.tooltip {
+    position: fixed;
+    background: rgba(0,0,0,0.95);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    max-width: 300px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    z-index: 1000;
+  }
+  
+  .tooltip-header {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #58a6ff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .tooltip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .path {
+    font-family: 'Fira Code', monospace;
+    word-break: break-word;
+    font-size: 0.8em;
+    color: #79c0ff;
+  }
+  
+  .metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .metric {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  
+  .label {
+    color: #8b949e;
+  }
+  
+  .value {
+    color: #f0f6fc;
+    font-weight: 500;
+  }
+  
+  .status-modified { color: #d29922; }
+  .status-added { color: #3fb950; }
+  .status-removed { color: #f85149; }
