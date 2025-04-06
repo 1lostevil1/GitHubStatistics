@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record FileResponse(
         @JsonProperty("filename") String filename,
+        @JsonProperty("sha") String changeSha,
         @JsonProperty("status") FileStatus status,
         @JsonProperty("additions") int additions,
         @JsonProperty("deletions") int deletions,

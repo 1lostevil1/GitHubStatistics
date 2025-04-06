@@ -1,10 +1,10 @@
 app:
-  base-url-auth: "http://localhost:8090"
+  base-url-stat: "http://localhost:8080"
 spring:
   liquibase:
     enabled: false
   application:
-    name: AuthService
+    name: UserService
   datasource:
     driver_class_name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5433/GitHubSTAT
@@ -15,5 +15,17 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         enable_lazy_load_no_trans: true
+        naming:
+          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 server:
   port: 8090
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+
+jwt:
+  secret: 9efSLPdgzmWMKCr4qQDYT34gjsqi3lAPPWlPRfBrQ3I6N2Jn6f7VzyEuqcSfXktPJkzFc2ajuFIdhtlu0S4qA
+  lifetime: 3000m

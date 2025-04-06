@@ -29,17 +29,27 @@ public class CommitEntity {
 
 
     private int changes;
+
+    @Column(name = "current_name")
+    String currentName;
+
+    @Column(name = "change_sha")
+    String changeSha;
+
     @Column(name = "previous_names")
     String previousNames;
 
+
     String state;
 
-    public CommitEntity(FileEntity file, BranchEntity branch, int additions, int deletions, int changes,String previousNames,String state) {
+    public CommitEntity(FileEntity file, BranchEntity branch, int additions, int deletions, int changes,String currentName,String changeSha,String previousNames,String state) {
         this.file = file;
         this.branch = branch;
         this.additions = additions;
         this.deletions = deletions;
         this.changes = changes;
+        this.currentName = currentName;
+        this.changeSha = changeSha;
         this.previousNames = previousNames;
         this.state = state;
 

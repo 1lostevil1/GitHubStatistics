@@ -53,7 +53,6 @@ public class BranchUpdateService {
         if (branchEntity.getCheckAt().isAfter(OffsetDateTime.now())) {
 
             List<CommitResponse> commitResponses = getCommits(link);
-            log.info(commitResponses.toString());
             processCommits(commitResponses,link);
             updateRequest = collectUpdateRequestFromDB(link.url());
         }
@@ -122,7 +121,8 @@ public class BranchUpdateService {
 
         commitRepo.findByBranch(branch).forEach(commitEntity -> {
 
-            FileResponse fileResponse = new FileResponse(commitEntity.getFile().getName(),
+            FileResponse fileResponse = new FileResponse(commitEntity.getCurrentName(),
+                    "",
                     FileStatus.valueOf(commitEntity.getState()),
                     commitEntity.getAdditions(),
                     commitEntity.getDeletions(),
@@ -137,9 +137,8 @@ public class BranchUpdateService {
     }
 
     private List<CommitResponse> getCommits(BranchDTO link) {
-        ParsedBranchDTO parsedBranchDTO = urlParser.parse(link.url());
 
-        log.info(parsedBranchDTO.toString());
+        ParsedBranchDTO parsedBranchDTO = urlParser.parse(link.url());
 
         DatedListCommitRequest datedListCommitRequest = new DatedListCommitRequest(parsedBranchDTO.owner(),
                 parsedBranchDTO.repo(),
@@ -155,8 +154,8 @@ public class BranchUpdateService {
     private void processCommits(List<CommitResponse> commitResponses, BranchDTO link) {
 
             for (int i = commitResponses.size() - 1; i >= 0; i--) {
-                log.info("-----    {}", commitResponses.get(i).sha());
-                    fileUpdateService.processFiles(link.url(), commitResponses.get(i).files());
+
+                fileUpdateService.processFiles(link.url(), commitResponses.get(i).files());
             }
     }
 

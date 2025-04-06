@@ -5,6 +5,8 @@ CREATE TABLE Commit (
                              additions INT NOT NULL,
                              deletions INT NOT NULL,
                              changes INT NOT NULL,
+                             change_sha VARCHAR(255) NOT NULL,
+                             current_name TEXT DEFAULT '',
                              previous_names TEXT DEFAULT '',
                              state VARCHAR(100),
                              FOREIGN KEY (file_id) REFERENCES File(id) ON DELETE CASCADE,

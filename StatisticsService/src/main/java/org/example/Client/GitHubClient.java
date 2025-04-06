@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.Request.Github.DatedListCommitRequest;
 import org.example.Response.Github.Commit.CommitResponse;
 import org.example.Response.Github.Commit.ShaResponse;
+import org.example.Service.LoggerService;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
@@ -13,9 +14,11 @@ import java.util.stream.Stream;
 public class GitHubClient {
 
     private final WebClient webClient;
+    private final LoggerService loggerService;
 
-    public GitHubClient(WebClient webClient) {
+    public GitHubClient(WebClient webClient, LoggerService loggerService) {
         this.webClient = webClient;
+        this.loggerService = loggerService;
     }
 
     private ShaResponse[] getShaArrayPerPage(DatedListCommitRequest commitRequest, int page) {
@@ -58,10 +61,12 @@ public class GitHubClient {
                 result.addAll(Stream.of(shaArray)
                         .map(shaResponse -> getCommitInfo(commitRequest, shaResponse.sha()))
                         .toList());
-                log.info(result.toString());
+
             }
 
         } while (currentPageSize == pageSize);
+
+        loggerService.log(result);
 
         return result;
     }

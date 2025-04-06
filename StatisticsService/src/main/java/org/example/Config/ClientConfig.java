@@ -2,6 +2,7 @@ package org.example.Config;
 
 import org.example.Client.GitHubClient;
 import org.example.Client.UserClient;
+import org.example.Service.LoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,8 @@ public class ClientConfig {
 
         int bufferSize = 1048576;
 
+        LoggerService loggerService = new LoggerService();
+
         ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(bufferSize))
                 .build();
@@ -30,7 +33,7 @@ public class ClientConfig {
                 .baseUrl(config.baseUrlGitHub())
                 .build();
 
-        return new GitHubClient(webClient);
+        return new GitHubClient(webClient,loggerService);
     }
 
     @Bean

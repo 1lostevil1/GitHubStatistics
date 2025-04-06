@@ -30,10 +30,13 @@ public class FileUpdateService {
 
     private final BranchRepo branchRepo;
 
+    private final ObjectMapper objectMapper;
+
     public FileUpdateService(FileRepo fileRepo, CommitRepo commitRepo, BranchRepo branchRepo) {
         this.fileRepo = fileRepo;
         this.commitRepo = commitRepo;
         this.branchRepo = branchRepo;
+        this.objectMapper = new ObjectMapper();
     }
 
     void processFiles(String branchUrl, List<FileResponse> files) {
@@ -44,39 +47,40 @@ public class FileUpdateService {
 
             for (FileResponse fileResponse : files) {
 
-                if(fileResponse.status() == FileStatus.RENAMED) log.info("--------file/status:::   {}   {}", fileResponse.filename(), fileResponse.status());
+               if( (fileResponse.status().equals(FileStatus.RENAMED)&& commitRepo.findAllByCurrentNameAndBranch(fileResponse.filename(),branchEntity).isEmpty() ) || commitRepo.findByCurrentNameAndChangeSha(fileResponse.filename(),fileResponse.changeSha()).isEmpty()) {
 
-                switch (fileResponse.status()) {
+                   switch (fileResponse.status()) {
 
-                    case ADDED -> {
+                       case ADDED -> {
 
-                        addedStateProcessing(branchEntity, fileResponse);
-                    }
+                           addedStateProcessing(branchEntity, fileResponse);
+                       }
 
 
-                    case REMOVED -> {
+                       case REMOVED -> {
 
-                        removedStateProcessing(branchEntity, fileResponse);
-                    }
+                           removedStateProcessing(branchEntity, fileResponse);
+                       }
 
-                    case RENAMED -> {
-                        renamedStateProcessing(branchEntity,fileResponse);
-                    }
+                       case RENAMED -> {
+                           renamedStateProcessing(branchEntity, fileResponse);
+                       }
 
-                    case MODIFIED -> {
+                       case MODIFIED -> {
 
-                        modifiedStateProcessing(branchEntity, fileResponse);
-                    }
+                           modifiedStateProcessing(branchEntity, fileResponse);
+                       }
 
-                    case CHANGED -> {
-                        log.info("file {} changed", fileResponse.filename());
-                    }
+                       case CHANGED -> {
+                           log.info("file {} changed", fileResponse.filename());
+                       }
 
-                    default -> {
-                        log.info("file status {} ", fileResponse.status());
-                    }
+                       default -> {
+                           log.info("file default status {} ", fileResponse.status());
+                       }
 
-                }
+                   }
+               }
 
             }
 
@@ -84,149 +88,112 @@ public class FileUpdateService {
     }
 
 
-
-
-
     void addedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
+
 
         Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileResponse.filename());
 
+        Optional<CommitEntity> commitEntityOptional = commitRepo.findByCurrentNameAndBranch(fileResponse.filename(), branchEntity);
 
         if (fileEntityOptional.isEmpty()) {
 
-            FileEntity fileEntity = new FileEntity(fileResponse.filename());
-            fileRepo.saveAndFlush(fileEntity);
+            if (commitEntityOptional.isEmpty()) {
+                FileEntity fileEntity = new FileEntity(fileResponse.filename());
+                fileEntityOptional = Optional.of(fileEntity);
+                fileRepo.saveAndFlush(fileEntity);
+            }
+        }
 
-            CommitEntity commitEntity = new CommitEntity(fileEntity,
+        CommitEntity commitEntity;
+
+        if (commitEntityOptional.isEmpty()) {
+
+            commitEntity = new CommitEntity(fileEntityOptional.get(),
                     branchEntity, fileResponse.additions(),
                     fileResponse.deletions(),
                     fileResponse.changes(),
+                    fileResponse.filename(),
+                    fileResponse.changeSha(),
                     fileResponse.previousFilename(),
                     fileResponse.status().name());
 
-            commitRepo.saveAndFlush(commitEntity);
+        }
+        //комит с добавлением этого файла уже есть, возможный кейс - неадекватный мердж комит
+        //или если файл был удалён
+        else {
+
+            commitEntity = commitEntityOptional.get();
+            commitEntity.setCurrentName(fileResponse.filename());
+            commitEntity.setState(fileResponse.status().name());
+            commitEntity.setAdditions(fileResponse.additions());
+            commitEntity.setDeletions(fileResponse.deletions());
+            commitEntity.setChanges(fileResponse.changes());
+            commitEntity.setChangeSha(fileResponse.changeSha());
+            commitEntity.setPreviousNames(fileResponse.previousFilename());
         }
 
-        else
-
-        {
-
-            Optional<CommitEntity> commitEntityOptional = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get());
-
-            CommitEntity commitEntity;
-
-            if (commitEntityOptional.isPresent()) {
-
-                commitEntity = commitEntityOptional.get();
-                commitEntity.setState(fileResponse.status().name());
-                commitEntity.setAdditions(fileResponse.additions());
-                commitEntity.setDeletions(fileResponse.deletions());
-                commitEntity.setChanges(fileResponse.changes());
-            }
-
-            else
-            {
-
-                commitEntity = new CommitEntity(fileEntityOptional.get(),
-                        branchEntity, fileResponse.additions(),
-                        fileResponse.deletions(),
-                        fileResponse.changes(),
-                        fileResponse.previousFilename(),
-                        fileResponse.status().name());
-            }
-            commitRepo.saveAndFlush(commitEntity);
-
-        }
-
-
-
+        commitRepo.saveAndFlush(commitEntity);
     }
 
 
     void removedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
 
-        Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileResponse.filename());
-        if(fileEntityOptional.isPresent()) {
-            CommitEntity commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get()).orElseThrow();
-            commitEntity.setState(fileResponse.status().name());
-            commitRepo.saveAndFlush(commitEntity);
-        }
 
+        CommitEntity commitEntity = commitRepo.findByCurrentNameAndBranch(fileResponse.filename(), branchEntity).orElseThrow();
 
+        commitEntity.setState(fileResponse.status().name());
+        commitEntity.setChangeSha(fileResponse.changeSha());
+        commitRepo.saveAndFlush(commitEntity);
     }
-
-
 
 
     void renamedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            CommitEntity commitEntity = commitRepo.findByCurrentNameAndBranch(fileResponse.previousFilename(), branchEntity).orElseThrow();
+
+            try {
+                List<String> previousNames = new ArrayList<>();
 
 
-        Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileResponse.previousFilename());
+                if (!(commitEntity.getPreviousNames() == null)) {
 
-try {
+                    previousNames = objectMapper.readValue(commitEntity.getPreviousNames(), new TypeReference<List<String>>() {
+                    });
+                }
 
-    CommitEntity commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get()).orElseThrow();
+                previousNames.add(fileResponse.previousFilename());
 
-    try {
-        List<String> previousNames = new ArrayList<>();
+                commitEntity.setCurrentName(fileResponse.filename());
+                commitEntity.setChangeSha(fileResponse.changeSha());
+                commitEntity.setPreviousNames(objectMapper.writeValueAsString(previousNames));
 
-        if (!(commitEntity.getPreviousNames() == null)) {
-            previousNames = objectMapper.readValue(commitEntity.getPreviousNames(), new TypeReference<List<String>>() {
-            });
+                commitRepo.saveAndFlush(commitEntity);
+
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (NoSuchElementException e) {
+            log.error(fileResponse.toString());
         }
 
-
-        commitEntity.setState(fileResponse.status().name());
-        List<String> newPreviousNames = new ArrayList<>();
-
-        if (previousNames.isEmpty()) {
-
-            newPreviousNames.add(fileResponse.previousFilename());
-
-        } else {
-
-            newPreviousNames.addAll(previousNames);
-            newPreviousNames.add(fileResponse.previousFilename());
-
-        }
-        commitEntity.setPreviousNames(objectMapper.writeValueAsString(newPreviousNames));
-        //TODO А ГДЕ ХРАНИТЬ НОВОЕ ИМЯ? (поле в комите для нового имени?)
-        removedStateProcessing(branchEntity, new FileResponse(fileResponse.previousFilename(),fileResponse.status(),fileResponse.additions(),fileResponse.deletions(),fileResponse.changes(),fileResponse.previousFilename()));
-        addedStateProcessing(branchEntity, fileResponse);
-
-    } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
     }
-} catch (Exception e) {
-    log.error("exception in RENAMED");
-    log.error("old name {}", fileResponse.previousFilename());
-    log.info("new name  {}", fileResponse.filename());
-    addedStateProcessing(branchEntity, fileResponse);
-}
 
-    }
 
     void modifiedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
 
-        Optional<FileEntity> fileEntityOptional  = fileRepo.findByName(fileResponse.filename());
-
-        if(fileEntityOptional.isPresent()) {
-            CommitEntity commitEntity = commitRepo.findByBranchAndFile(branchEntity, fileEntityOptional.get()).orElseThrow();
+        try {
+            CommitEntity commitEntity = commitRepo.findByCurrentNameAndBranch(fileResponse.filename(), branchEntity).orElseThrow();
 
             commitEntity.setState(fileResponse.status().name());
             commitEntity.setAdditions(commitEntity.getAdditions() + fileResponse.additions());
             commitEntity.setDeletions(commitEntity.getDeletions() + fileResponse.deletions());
             commitEntity.setChanges(commitEntity.getChanges() + fileResponse.changes());
+            commitEntity.setChangeSha(fileResponse.changeSha());
             commitRepo.saveAndFlush(commitEntity);
+        } catch (Exception e){
+            log.error(fileResponse.toString());
         }
-        else{
-
-            log.info("no such file in DB when MODIFIED, pr?:  {}", fileResponse.filename());
-            addedStateProcessing(branchEntity, fileResponse);
-        }
-
 
     }
 

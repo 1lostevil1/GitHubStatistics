@@ -71,9 +71,7 @@ public class SubscriptionService {
                 userEntity.getBranches().add(branchEntity);
                 userRepo.saveAndFlush(userEntity);
 
-
             }
-
 
         } else {
 

@@ -18,9 +18,10 @@ public interface CommitRepo extends JpaRepository<CommitEntity, Long> {
 
     List<CommitEntity> findByBranch(BranchEntity branch);
 
-//
-//    @Modifying
-//    @Transactional
-//    @Query("DELETE FROM CommitEntity c WHERE c.branch = :branch AND c.file = :file")
-//    void deleteByBranchAndFile(@Param("branch") BranchEntity branch, @Param("file") FileEntity file);
+    Optional<CommitEntity> findByCurrentNameAndBranch(String name, BranchEntity branch );
+
+    List<CommitEntity> findAllByCurrentNameAndBranch(String name, BranchEntity branch );
+
+    Optional<CommitEntity> findByCurrentNameAndChangeSha(String currentName, String changeSha);
+
 }
