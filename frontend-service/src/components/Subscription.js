@@ -41,7 +41,7 @@ const buildHierarchy = (files) => {
       }
 
       if (isFile) {
-        childNode.value += normalizedChanges;
+        childNode.value = normalizedChanges;
       }
       currentNode.value += normalizedChanges;
       
@@ -56,13 +56,10 @@ const Subscription = ({ username }) => {
   const [url, setUrl] = useState('');
   const [branches, setBranches] = useState({});
   const [error, setError] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [transform, setTransform] = useState({ x: 0, y: 0 });
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const stompClient = useRef(null);
   const svgRefs = useRef({});
-  const containerRefs = useRef({});
   const tooltipRef = useRef(null);
 
   useEffect(() => {
@@ -103,30 +100,6 @@ const Subscription = ({ username }) => {
     return () => stompClient.current?.deactivate();
   }, [navigate]);
 
-  const handleMouseDown = (event, branch) => {
-    setIsDragging(true);
-    setDragStart({
-      x: event.clientX - transform.x,
-      y: event.clientY - transform.y
-    });
-    containerRefs.current[branch].style.cursor = 'grabbing';
-  };
-
-  const handleMouseMove = (event) => {
-    if (isDragging) {
-      const newX = event.clientX - dragStart.x;
-      const newY = event.clientY - dragStart.y;
-      setTransform({ x: newX, y: newY });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    Object.values(containerRefs.current).forEach(container => {
-      if (container) container.style.cursor = 'grab';
-    });
-  };
-
   const updateTooltipPosition = (event) => {
     const tooltip = d3.select(tooltipRef.current);
     if (!tooltip.node()) return;
@@ -146,7 +119,7 @@ const Subscription = ({ username }) => {
       if (!container) return;
 
       const width = container.clientWidth;
-      const height = 600;
+      const height = 900; // Увеличена высота в 1.5 раза
       const tooltip = d3.select(tooltipRef.current);
 
       d3.select(container).selectAll('*').remove();
@@ -161,8 +134,9 @@ const Subscription = ({ username }) => {
 
       d3.treemap()
         .size([width, height])
-        .paddingTop(15)
-        .paddingInner(2)
+        .paddingTop(0)
+        .paddingInner(0)
+        .round(false)
         (root);
 
       const nodes = svg.selectAll('g')
@@ -170,16 +144,20 @@ const Subscription = ({ username }) => {
         .enter().append('g')
         .attr('transform', d => `translate(${d.x0},${d.y0})`);
 
-      const color = d3.scaleOrdinal()
-        .domain(root.descendants().map(d => d.parent?.data.fullPath || 'root'))
-        .range(d3.quantize(d3.interpolateSinebow, root.descendants().length + 1));
+      const SIX_MONTHS_AGO = new Date();
+      SIX_MONTHS_AGO.setMonth(SIX_MONTHS_AGO.getMonth() - 6);
 
       nodes.append('rect')
         .attr('width', d => d.x1 - d.x0)
         .attr('height', d => d.y1 - d.y0)
-        .attr('fill', d => color(d.parent?.data.fullPath || 'root'))
+        .attr('fill', d => {
+          if (d.data.isDirectory) return '#2d2d2d'; // Темно-серый цвет для директорий
+          if (!d.data.details) return '#e0e0e0';
+          const fileDate = new Date(d.data.details.date);
+          return fileDate < SIX_MONTHS_AGO ? '#ff4444' : '#4CAF50';
+        })
         .attr('stroke', '#fff')
-        .attr('rx', 4)
+        .attr('rx', 2)
         .style('cursor', 'pointer')
         .on('mouseover', (event, d) => {
           tooltip.style('opacity', 1)
@@ -190,6 +168,16 @@ const Subscription = ({ username }) => {
               <div class="tooltip-content">
                 <div class="path">${d.data.fullPath}</div>
                 ${d.data.details ? `
+                  <div class="author-info">
+                    <span class="author">👤 ${d.data.details.author}</span>
+                    <span class="date">📅 ${new Date(d.data.details.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
                   <div class="metrics">
                     <div class="metric">
                       <span class="label">Changes:</span>
@@ -231,17 +219,7 @@ const Subscription = ({ username }) => {
     Object.entries(branches).forEach(([branch, { data }]) => {
       drawTreemap(branch, data);
     });
-  }, [branches, transform]);
-
-  useEffect(() => {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragStart]);
+  }, [branches]);
 
   const handleSubscribe = async () => {
     try {
@@ -254,6 +232,10 @@ const Subscription = ({ username }) => {
       await axios.post('/api/secured/subscribe', { url }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      setSuccess('Successfully subscribed to branch!');
+      setTimeout(() => setSuccess(''), 3000);
+      setUrl('');
 
     } catch (err) {
       setError(err.message);
@@ -278,6 +260,7 @@ const Subscription = ({ username }) => {
           </button>
         </div>
         {error && <div className="error">{error}</div>}
+        {success && <div className="success">{success}</div>}
       </div>
 
       <div className="visualization">
@@ -285,12 +268,7 @@ const Subscription = ({ username }) => {
           <div 
             key={branch} 
             className="branch"
-            style={{ 
-              transform: `translate(${transform.x}px, ${transform.y}px)`,
-              cursor: isDragging ? 'grabbing' : 'grab'
-            }}
-            ref={el => containerRefs.current[branch] = el}
-            onMouseDown={(e) => handleMouseDown(e, branch)}
+            ref={el => svgRefs.current[branch] = el}
           >
             <div className="branch-info">
               <h3>{branch}</h3>

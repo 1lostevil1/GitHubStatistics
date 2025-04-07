@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "commit")
 @NoArgsConstructor
@@ -22,6 +24,12 @@ public class CommitEntity {
     @ManyToOne
     @JoinColumn(name = "branch_id")
     private BranchEntity branch;
+
+    @Column(name="author")
+    private String author;
+
+    @Column(name="date")
+    private OffsetDateTime date;
 
     private int additions;
 
@@ -42,9 +50,11 @@ public class CommitEntity {
 
     String state;
 
-    public CommitEntity(FileEntity file, BranchEntity branch, int additions, int deletions, int changes,String currentName,String changeSha,String previousNames,String state) {
+    public CommitEntity(FileEntity file, BranchEntity branch,String author,OffsetDateTime date, int additions, int deletions, int changes,String currentName,String changeSha,String previousNames,String state) {
         this.file = file;
         this.branch = branch;
+        this.author = author;
+        this.date = date;
         this.additions = additions;
         this.deletions = deletions;
         this.changes = changes;

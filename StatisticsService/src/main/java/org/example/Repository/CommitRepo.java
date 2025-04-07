@@ -22,6 +22,6 @@ public interface CommitRepo extends JpaRepository<CommitEntity, Long> {
 
     List<CommitEntity> findAllByCurrentNameAndBranch(String name, BranchEntity branch );
 
-    Optional<CommitEntity> findByCurrentNameAndChangeSha(String currentName, String changeSha);
+    Optional<CommitEntity> findByCurrentNameAndBranchAndChangeSha(String currentName,BranchEntity branch, String changeSha);
 
 }

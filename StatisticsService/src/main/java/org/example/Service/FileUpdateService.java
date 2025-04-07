@@ -10,6 +10,8 @@ import org.example.Entities.FileEntity;
 import org.example.Repository.BranchRepo;
 import org.example.Repository.CommitRepo;
 import org.example.Repository.FileRepo;
+import org.example.Response.Github.Commit.Author;
+import org.example.Response.Github.Commit.CommitResponse;
 import org.example.Response.Github.Commit.FileResponse;
 import org.example.Response.Github.Commit.FileStatus;
 import org.springframework.stereotype.Service;
@@ -39,7 +41,11 @@ public class FileUpdateService {
         this.objectMapper = new ObjectMapper();
     }
 
-    void processFiles(String branchUrl, List<FileResponse> files) {
+    void processFiles(String branchUrl, CommitResponse commitResponse) {
+
+        List<FileResponse> files = commitResponse.files();
+
+        Author author = commitResponse.commit().author();
 
         if (!files.isEmpty()) {
 
@@ -47,28 +53,28 @@ public class FileUpdateService {
 
             for (FileResponse fileResponse : files) {
 
-               if( (fileResponse.status().equals(FileStatus.RENAMED)&& commitRepo.findAllByCurrentNameAndBranch(fileResponse.filename(),branchEntity).isEmpty() ) || commitRepo.findByCurrentNameAndChangeSha(fileResponse.filename(),fileResponse.changeSha()).isEmpty()) {
+               if( (fileResponse.status().equals(FileStatus.RENAMED)&& commitRepo.findAllByCurrentNameAndBranch(fileResponse.filename(),branchEntity).isEmpty() ) || commitRepo.findByCurrentNameAndBranchAndChangeSha(fileResponse.filename(),branchEntity, fileResponse.changeSha()).isEmpty()) {
 
                    switch (fileResponse.status()) {
 
                        case ADDED -> {
 
-                           addedStateProcessing(branchEntity, fileResponse);
+                           addedStateProcessing(branchEntity, fileResponse,author);
                        }
 
 
                        case REMOVED -> {
 
-                           removedStateProcessing(branchEntity, fileResponse);
+                           removedStateProcessing(branchEntity, fileResponse,author);
                        }
 
                        case RENAMED -> {
-                           renamedStateProcessing(branchEntity, fileResponse);
+                           renamedStateProcessing(branchEntity, fileResponse,author);
                        }
 
                        case MODIFIED -> {
 
-                           modifiedStateProcessing(branchEntity, fileResponse);
+                           modifiedStateProcessing(branchEntity, fileResponse,author);
                        }
 
                        case CHANGED -> {
@@ -88,7 +94,7 @@ public class FileUpdateService {
     }
 
 
-    void addedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
+    void addedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse, Author author) {
 
 
         Optional<FileEntity> fileEntityOptional = fileRepo.findByName(fileResponse.filename());
@@ -109,7 +115,10 @@ public class FileUpdateService {
         if (commitEntityOptional.isEmpty()) {
 
             commitEntity = new CommitEntity(fileEntityOptional.get(),
-                    branchEntity, fileResponse.additions(),
+                    branchEntity,
+                    author.name(),
+                    author.date(),
+                    fileResponse.additions(),
                     fileResponse.deletions(),
                     fileResponse.changes(),
                     fileResponse.filename(),
@@ -124,6 +133,8 @@ public class FileUpdateService {
 
             commitEntity = commitEntityOptional.get();
             commitEntity.setCurrentName(fileResponse.filename());
+            commitEntity.setAuthor(author.name());
+            commitEntity.setDate(author.date());
             commitEntity.setState(fileResponse.status().name());
             commitEntity.setAdditions(fileResponse.additions());
             commitEntity.setDeletions(fileResponse.deletions());
@@ -136,18 +147,20 @@ public class FileUpdateService {
     }
 
 
-    void removedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
+    void removedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse, Author author) {
 
 
         CommitEntity commitEntity = commitRepo.findByCurrentNameAndBranch(fileResponse.filename(), branchEntity).orElseThrow();
 
         commitEntity.setState(fileResponse.status().name());
         commitEntity.setChangeSha(fileResponse.changeSha());
+        commitEntity.setAuthor(author.name());
+        commitEntity.setDate(author.date());
         commitRepo.saveAndFlush(commitEntity);
     }
 
 
-    void renamedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
+    void renamedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse, Author author) {
 
         try {
             CommitEntity commitEntity = commitRepo.findByCurrentNameAndBranch(fileResponse.previousFilename(), branchEntity).orElseThrow();
@@ -167,6 +180,8 @@ public class FileUpdateService {
                 commitEntity.setCurrentName(fileResponse.filename());
                 commitEntity.setChangeSha(fileResponse.changeSha());
                 commitEntity.setPreviousNames(objectMapper.writeValueAsString(previousNames));
+                commitEntity.setAuthor(author.name());
+                commitEntity.setDate(author.date());
 
                 commitRepo.saveAndFlush(commitEntity);
 
@@ -180,7 +195,7 @@ public class FileUpdateService {
     }
 
 
-    void modifiedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse) {
+    void modifiedStateProcessing(BranchEntity branchEntity, FileResponse fileResponse, Author author) {
 
         try {
             CommitEntity commitEntity = commitRepo.findByCurrentNameAndBranch(fileResponse.filename(), branchEntity).orElseThrow();
@@ -190,6 +205,8 @@ public class FileUpdateService {
             commitEntity.setDeletions(commitEntity.getDeletions() + fileResponse.deletions());
             commitEntity.setChanges(commitEntity.getChanges() + fileResponse.changes());
             commitEntity.setChangeSha(fileResponse.changeSha());
+            commitEntity.setAuthor(author.name());
+            commitEntity.setDate(author.date());
             commitRepo.saveAndFlush(commitEntity);
         } catch (Exception e){
             log.error(fileResponse.toString());

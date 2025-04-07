@@ -1,135 +1,98 @@
 .subscription-container {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-  }
-  
-  .header {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
-  }
-  
-  .controls {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-  }
-  
-  .controls input {
-    flex: 1;
-    padding: 0.75rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-  }
-  
-  .controls input:focus {
-    border-color: #2ea44f;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(46,164,79,0.1);
-  }
-  
-  .controls button {
-    padding: 0.75rem 1.5rem;
-    background: #2ea44f;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
-  
-  .controls button:hover {
-    background: #22863a;
-    transform: translateY(-1px);
-  }
-  
-  .controls button:active {
-    transform: translateY(0);
-  }
-  
-  .error {
-    color: #dc3545;
-    padding: 0.75rem;
-    margin-top: 1rem;
-    background: #ffeef0;
-    border: 1px solid #f5c6cb;
-    border-radius: 6px;
-  }
-  
-  .visualization {
-    display: grid;
-    gap: 2rem;
-  }
-  
-  .branch {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    overflow: hidden;
-    transition: transform 0.2s;
-  }
-  
-  .branch:hover {
-    transform: translateY(-2px);
-  }
-  
-  .branch-info {
-    padding: 1rem;
-    background: #fafbfc;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .branch-info h3 {
-    margin: 0;
-    color: #24292e;
-    font-size: 1.25rem;
-  }
-  
-  .stats {
-    display: flex;
-    gap: 1.5rem;
-    color: #586069;
-    font-size: 0.9rem;
-  }
-  
-  .treemap {
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  .treemap rect {
-    transition: all 0.2s ease;
-    stroke: #fff;
-    stroke-width: 0.5px;
-  }
-  
-  .treemap rect:hover {
-    opacity: 0.9;
-  }
-  
-  @media (max-width: 768px) {
-    .subscription-container {
-      padding: 1rem;
-    }
-    
-    .branch-info {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-    
-    .stats {
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-  }
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f8f9fa;
+}
+
+.header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  max-width: 1000px;
+  margin: 0 auto 20px;
+}
+
+.controls input {
+  flex: 1;
+  padding: 12px 15px;
+  border: 2px solid #4B0082;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.controls button {
+  padding: 12px 25px;
+  background: #4B0082;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.controls button:hover {
+  background: #3a0069;
+}
+
+.visualization {
+  position: relative;
+  overflow: auto;
+  padding: 20px 0;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.branch {
+  background: #ffffff;
+  border: 2px solid #4B0082;
+  border-radius: 10px;
+  margin: 20px 0;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.branch-info h3 {
+  margin: 0 0 10px 0;
+  color: #4B0082;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.stats {
+  display: flex;
+  gap: 25px;
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.treemap {
+  border: 2px solid #4B0082;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 900px;
+  background: #f8f8f8;
+}
+
+.error {
+  color: #dc3545;
+  margin-top: 10px;
+  padding: 15px;
+  background: #fff5f5;
+  border-radius: 6px;
+  border: 1px solid #dc3545;
+}
+
+.success {
+  color: #28a745;
+  margin-top: 10px;
+  padding: 15px;
+  background: #f0fff4;
+  border-radius: 6px;
+  border: 1px solid #28a745;
+}

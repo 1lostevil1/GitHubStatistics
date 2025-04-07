@@ -12,8 +12,8 @@ import org.example.Repository.CommitRepo;
 import org.example.Request.Github.DatedListCommitRequest;
 import org.example.Request.User.UpdateRequest;
 import org.example.Response.Github.Commit.CommitResponse;
-import org.example.Response.Github.Commit.FileResponse;
 import org.example.Response.Github.Commit.FileStatus;
+import org.example.Response.Update.FileUpdateResponse;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -117,12 +117,13 @@ public class BranchUpdateService {
 
         BranchEntity branch = branchRepo.findByUrl(url).orElseThrow();
 
-        List<FileResponse> fileResponses = new ArrayList<>();
+        List<FileUpdateResponse> fileResponses = new ArrayList<>();
 
         commitRepo.findByBranch(branch).forEach(commitEntity -> {
 
-            FileResponse fileResponse = new FileResponse(commitEntity.getCurrentName(),
-                    "",
+            FileUpdateResponse fileResponse = new FileUpdateResponse( commitEntity.getAuthor(),
+                    commitEntity.getDate(),
+                    commitEntity.getCurrentName(),
                     FileStatus.valueOf(commitEntity.getState()),
                     commitEntity.getAdditions(),
                     commitEntity.getDeletions(),
@@ -155,7 +156,7 @@ public class BranchUpdateService {
 
             for (int i = commitResponses.size() - 1; i >= 0; i--) {
 
-                fileUpdateService.processFiles(link.url(), commitResponses.get(i).files());
+                fileUpdateService.processFiles(link.url(), commitResponses.get(i));
             }
     }
 

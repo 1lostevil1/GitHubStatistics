@@ -2,6 +2,8 @@ CREATE TABLE Commit (
                              id SERIAL PRIMARY KEY,
                              file_id BIGINT NOT NULL,
                              branch_id BIGINT NOT NULL,
+                             author VARCHAR(255) NOT NULL,
+                             date TIMESTAMP WITH TIME ZONE,
                              additions INT NOT NULL,
                              deletions INT NOT NULL,
                              changes INT NOT NULL,
