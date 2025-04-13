@@ -266,22 +266,21 @@ const Subscription = ({ username }) => {
       <div className="visualization">
         {Object.entries(branches).map(([branch, { data, meta }]) => (
           <div 
-            key={branch} 
-            className="branch"
-            ref={el => svgRefs.current[branch] = el}
-          >
-            <div className="branch-info">
-              <h3>{branch}</h3>
-              <div className="stats">
-                <span>Files: {meta.count}</span>
-                <span>Updated: {new Date(meta.timestamp).toLocaleTimeString()}</span>
-              </div>
+          key={branch} 
+          className="branch"
+        >
+          <div className="branch-info">
+            <h3>{branch}</h3>
+            <div className="stats">
+              <span>Files: {meta.count}</span>
+              <span>Updated: {new Date(meta.timestamp).toLocaleTimeString()}</span>
             </div>
-            <div 
-              className="treemap"
-              ref={el => svgRefs.current[branch] = el}
-            />
           </div>
+          <div 
+            className="treemap-container"
+            ref={el => svgRefs.current[branch] = el}
+          />
+        </div>
         ))}
       </div>
       

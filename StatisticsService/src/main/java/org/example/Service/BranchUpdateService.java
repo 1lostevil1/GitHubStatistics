@@ -127,6 +127,7 @@ public class BranchUpdateService {
                     FileStatus.valueOf(commitEntity.getState()),
                     commitEntity.getAdditions(),
                     commitEntity.getDeletions(),
+                    commitEntity.getRefactors(),
                     commitEntity.getChanges(),
                     commitEntity.getPreviousNames());
             fileResponses.add(fileResponse);

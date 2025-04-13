@@ -1,6 +1,7 @@
 package org.example.Service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.DTO.UserDTO;
 import org.example.Entities.UserEntity;
 import org.example.Repository.UserRepo;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UserService implements UserDetailsService {
 
 
@@ -32,7 +34,6 @@ public class UserService implements UserDetailsService {
                 String.format("User '%s' not found",username)
         ));
         return new User(userEntity.getUsername(),userEntity.getPassword(),new ArrayList<>());
-
 
     }
 

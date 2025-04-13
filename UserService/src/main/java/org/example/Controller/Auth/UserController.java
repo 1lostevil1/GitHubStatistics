@@ -56,6 +56,7 @@ public class UserController {
         UserDTO userDTO = new UserDTO(registrationRequest.username(), registrationRequest.email(), registrationRequest.password());
         userService.createNewUser(userDTO);
 
+        log.info("User {} created", registrationRequest.username());
         return ResponseEntity.ok(new RegistrationResponse(userDTO.username(), userDTO.email()));
     }
 
@@ -64,7 +65,7 @@ public class UserController {
     @PostMapping("/createAuthToken")
     public ResponseEntity<?> createAuthToken(@Validated @RequestBody AuthTokenRequest authTokenRequest) {
 
-        log.info("{} requested token", authTokenRequest.username());
+        log.info("{} tried to signin (requested token)", authTokenRequest.username());
 
         try {
 
@@ -72,6 +73,7 @@ public class UserController {
 
         } catch (BadCredentialsException e) {
 
+            log.info("Bad credentials (incorrect login/password)");
             return new ResponseEntity<>(
                     new WrongDataException(HttpStatus.UNAUTHORIZED.value(),
                             "Incorrect login or password"), HttpStatus.UNAUTHORIZED);

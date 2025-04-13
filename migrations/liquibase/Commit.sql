@@ -6,10 +6,13 @@ CREATE TABLE Commit (
                              date TIMESTAMP WITH TIME ZONE,
                              additions INT NOT NULL,
                              deletions INT NOT NULL,
+                             refactors INT DEFAULT 0,
                              changes INT NOT NULL,
                              change_sha VARCHAR(255) NOT NULL,
                              current_name TEXT DEFAULT '',
                              previous_names TEXT DEFAULT '',
+                             added_strings TEXT DEFAULT '',
+                             deleted_strings TEXT DEFAULT '',
                              state VARCHAR(100),
                              FOREIGN KEY (file_id) REFERENCES File(id) ON DELETE CASCADE,
                              FOREIGN KEY (branch_id) REFERENCES Branch(id) ON DELETE CASCADE

@@ -3,8 +3,10 @@ package org.example.Client;
 import lombok.extern.slf4j.Slf4j;
 import org.example.Request.Github.DatedListCommitRequest;
 import org.example.Response.Github.Commit.CommitResponse;
+import org.example.Response.Github.Commit.FileResponse;
 import org.example.Response.Github.Commit.ShaResponse;
 import org.example.Service.LoggerService;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
@@ -38,8 +40,9 @@ public class GitHubClient {
 
     private CommitResponse getCommitInfo(DatedListCommitRequest commitRequest, String sha) {
 
-        return webClient.get()
+        return  webClient.get()
                 .uri("/repos/{owner}/{repo}/commits/{sha}", commitRequest.owner(), commitRequest.repo(), sha)
+                .header("Accept", "application/vnd.github+json")
                 .retrieve()
                 .bodyToMono(CommitResponse.class)
                 .block();

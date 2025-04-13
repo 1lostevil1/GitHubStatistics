@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class FileMapper {
 
     public  FileEntity ResponseToFileEntity(FileResponse fileResponse) {
-        return new FileEntity(fileResponse.filename());
+        return new FileEntity(fileResponse.getFilename());
     }
 
 }

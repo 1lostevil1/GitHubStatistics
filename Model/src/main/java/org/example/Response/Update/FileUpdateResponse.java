@@ -13,6 +13,7 @@ public record FileUpdateResponse(  @JsonProperty("author") String author,
                                    @JsonProperty("status") FileStatus status,
                                    @JsonProperty("additions") int additions,
                                    @JsonProperty("deletions") int deletions,
+                                   @JsonProperty("refactors") int refactors,
                                    @JsonProperty("changes") int changes,
                                    @JsonProperty("previous_filename") String previousFilename) {
 }

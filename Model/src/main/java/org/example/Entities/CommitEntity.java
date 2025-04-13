@@ -13,57 +13,73 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Data
 public class CommitEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "file_id")
+    @JoinColumn(name = "file_id", nullable = false)
     private FileEntity file;
 
     @ManyToOne
-    @JoinColumn(name = "branch_id")
+    @JoinColumn(name = "branch_id", nullable = false)
     private BranchEntity branch;
 
-    @Column(name="author")
+    @Column(name = "author", nullable = false)
     private String author;
 
-    @Column(name="date")
+    @Column(name = "date")
     private OffsetDateTime date;
 
+    @Column(nullable = false)
     private int additions;
 
+    @Column(nullable = false)
     private int deletions;
 
-
+    @Column(nullable = false)
     private int changes;
 
-    @Column(name = "current_name")
-    String currentName;
+    @Column(nullable = false)
+    private int refactors;
 
-    @Column(name = "change_sha")
-    String changeSha;
+    @Column(name = "current_name", columnDefinition = "TEXT DEFAULT ''")
+    private String currentName;
 
-    @Column(name = "previous_names")
-    String previousNames;
+    @Column(name = "change_sha", nullable = false)
+    private String changeSha;
 
+    @Column(name = "previous_names", columnDefinition = "TEXT DEFAULT ''")
+    private String previousNames;
 
-    String state;
+    @Column(name = "added_strings", columnDefinition = "TEXT DEFAULT ''")
+    private String addedStrings;
 
-    public CommitEntity(FileEntity file, BranchEntity branch,String author,OffsetDateTime date, int additions, int deletions, int changes,String currentName,String changeSha,String previousNames,String state) {
+    @Column(name = "deleted_strings", columnDefinition = "TEXT DEFAULT ''")
+    private String deletedStrings;
+
+    @Column(length = 100)
+    private String state;
+
+    // Дополнительный удобный конструктор без id
+    public CommitEntity(FileEntity file, BranchEntity branch, String author, OffsetDateTime date,
+                        int additions, int deletions, int refactors, int changes,
+                        String currentName, String changeSha, String previousNames,
+                        String addedStrings, String deletedStrings, String state) {
         this.file = file;
         this.branch = branch;
         this.author = author;
         this.date = date;
         this.additions = additions;
         this.deletions = deletions;
+        this.refactors = refactors;
         this.changes = changes;
         this.currentName = currentName;
         this.changeSha = changeSha;
         this.previousNames = previousNames;
+        this.addedStrings = addedStrings;
+        this.deletedStrings = deletedStrings;
         this.state = state;
-
     }
-
-
 }
