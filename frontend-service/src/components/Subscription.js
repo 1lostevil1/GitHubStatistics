@@ -55,6 +55,7 @@ const buildHierarchy = (files) => {
 const Subscription = ({ username }) => {
   const [url, setUrl] = useState('');
   const [branches, setBranches] = useState({});
+  const [refactoredFiles, setRefactoredFiles] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
@@ -89,6 +90,21 @@ const Subscription = ({ username }) => {
                 }
               }
             }));
+
+            // Collect files with refactors
+            const newRefactored = updateRequest.files
+              .filter(file => file.refactors > 0)
+              .map(file => ({
+                ...file,
+                branch: updateRequest.branch
+              }));
+
+            setRefactoredFiles(prev => {
+              const existing = new Map();
+              prev.forEach(f => existing.set(`${f.branch}-${f.filename}`, f));
+              newRefactored.forEach(f => existing.set(`${f.branch}-${f.filename}`, f));
+              return Array.from(existing.values());
+            });
           } catch (e) {
             console.error('Error processing message:', e);
           }
@@ -119,7 +135,7 @@ const Subscription = ({ username }) => {
       if (!container) return;
 
       const width = container.clientWidth;
-      const height = 900; // Увеличена высота в 1.5 раза
+      const height = 900;
       const tooltip = d3.select(tooltipRef.current);
 
       d3.select(container).selectAll('*').remove();
@@ -151,8 +167,9 @@ const Subscription = ({ username }) => {
         .attr('width', d => d.x1 - d.x0)
         .attr('height', d => d.y1 - d.y0)
         .attr('fill', d => {
-          if (d.data.isDirectory) return '#2d2d2d'; // Темно-серый цвет для директорий
+          if (d.data.isDirectory) return '#2d2d2d';
           if (!d.data.details) return '#e0e0e0';
+          if (d.data.details.refactors > 0) return '#FFD700'; // Yellow for refactors
           const fileDate = new Date(d.data.details.date);
           return fileDate < SIX_MONTHS_AGO ? '#ff4444' : '#4CAF50';
         })
@@ -190,6 +207,10 @@ const Subscription = ({ username }) => {
                     <div class="metric">
                       <span class="label">Deletions:</span>
                       <span class="value">${d.data.details.deletions}</span>
+                    </div>
+                    <div class="metric">
+                      <span class="label">Refactors:</span>
+                      <span class="value">${d.data.details.refactors}</span>
                     </div>
                     <div class="metric">
                       <span class="label">Status:</span>
@@ -263,25 +284,50 @@ const Subscription = ({ username }) => {
         {success && <div className="success">{success}</div>}
       </div>
 
-      <div className="visualization">
-        {Object.entries(branches).map(([branch, { data, meta }]) => (
-          <div 
-          key={branch} 
-          className="branch"
-        >
-          <div className="branch-info">
-            <h3>{branch}</h3>
-            <div className="stats">
-              <span>Files: {meta.count}</span>
-              <span>Updated: {new Date(meta.timestamp).toLocaleTimeString()}</span>
+      <div className="main-content">
+        <div className="visualization">
+          {Object.entries(branches).map(([branch, { data, meta }]) => (
+            <div 
+              key={branch} 
+              className="branch"
+            >
+              <div className="branch-info">
+                <h3>{branch}</h3>
+                <div className="stats">
+                  <span>Files: {meta.count}</span>
+                  <span>Updated: {new Date(meta.timestamp).toLocaleTimeString()}</span>
+                </div>
+              </div>
+              <div 
+                className="treemap-container"
+                ref={el => svgRefs.current[branch] = el}
+              />
             </div>
-          </div>
-          <div 
-            className="treemap-container"
-            ref={el => svgRefs.current[branch] = el}
-          />
+          ))}
         </div>
-        ))}
+
+        <div className="refactored-list">
+          <h3>Refactored Files ({refactoredFiles.length})</h3>
+          {refactoredFiles.length === 0 ? (
+            <div className="no-refactored">No refactored files detected</div>
+          ) : (
+            refactoredFiles.map(file => (
+              <div 
+                key={`${file.branch}-${file.filename}`}
+                className="refactored-item"
+              >
+                <div className="file-path">{file.filename}</div>
+                <div className="file-branch">Branch: {file.branch}</div>
+                <div className="file-stats">
+                  <span>Refactors: {file.refactors}</span>
+                  <span>Changes: {file.changes}</span>
+                  <span>+{file.additions}</span>
+                  <span>-{file.deletions}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
       
       <div ref={tooltipRef} className="tooltip"></div>

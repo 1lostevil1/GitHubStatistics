@@ -323,6 +323,19 @@ try {
 
         refactoredCount += internalRefactored.size();
 
+
+        for (CommitEntity commitEntity : matchingPreviouslyDeleted) {
+            commitEntity.setRefactors(refactoredCount); // <-- твоё поле
+        }
+
+        for (CommitEntity commitEntity : matchingPreviouslyAdded) {
+            commitEntity.setRefactors(refactoredCount); // <-- твоя логика может отличаться
+        }
+
+        // Сохраняем в репозиторий (если это JPA)
+        commitRepo.saveAll(matchingPreviouslyDeleted);
+        commitRepo.saveAll(matchingPreviouslyAdded);
+
         return refactoredCount;
     }
 }

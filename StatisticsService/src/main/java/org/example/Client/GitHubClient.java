@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -54,20 +55,30 @@ public class GitHubClient {
         int pageSize = 30;
         int currentPageSize = 0;
 
-        List<CommitResponse> result = new ArrayList<>();
+        List<CompletableFuture<CommitResponse>> futures = new ArrayList<>();
 
         do {
+
             ShaResponse[] shaArray = getShaArrayPerPage(commitRequest, page);
+
             if (shaArray != null && shaArray.length > 0) {
                 currentPageSize = shaArray.length;
                 page = page + 1;
-                result.addAll(Stream.of(shaArray)
-                        .map(shaResponse -> getCommitInfo(commitRequest, shaResponse.sha()))
-                        .toList());
 
+                Arrays.stream(shaArray).forEach(shaResponse -> {
+                    CompletableFuture<CommitResponse> future = CompletableFuture.supplyAsync(() ->
+                            getCommitInfo(commitRequest, shaResponse.sha())
+                    );
+                    futures.add(future);
+                });
             }
 
         } while (currentPageSize == pageSize);
+
+        List<CommitResponse> result = futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
+
 
         loggerService.log(result);
 
