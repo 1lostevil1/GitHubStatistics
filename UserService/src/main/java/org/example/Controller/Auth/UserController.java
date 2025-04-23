@@ -96,6 +96,12 @@ public class UserController {
     public boolean checkToken() {
         return true;
     }
+
+    @GetMapping("/secured/currentUpdates")
+    public ResponseEntity<?> getCurrentUpdates(@RequestHeader("Authorization") String jwtToken) {
+        subscriptionService.getCurrentUpdates(jwtToken);
+        return ResponseEntity.ok("");
+    }
 }
 
 

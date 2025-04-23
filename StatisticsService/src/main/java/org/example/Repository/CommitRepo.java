@@ -12,10 +12,6 @@ import java.util.Optional;
 @Repository
 public interface CommitRepo extends JpaRepository<CommitEntity, Long> {
 
-    boolean existsByBranchAndFile(BranchEntity branch, FileEntity file);
-
-    Optional<CommitEntity> findByBranchAndFile(BranchEntity branch, FileEntity file);
-
     List<CommitEntity> findByBranch(BranchEntity branch);
 
     Optional<CommitEntity> findByCurrentNameAndBranch(String name, BranchEntity branch );
@@ -26,6 +22,5 @@ public interface CommitRepo extends JpaRepository<CommitEntity, Long> {
 
     List<CommitEntity> findAllByCurrentNameAndBranchAndAddedStringsContaining(String name, BranchEntity branch,String string);
 
-    List<CommitEntity> findAllByCurrentNameAndBranchAndDeletedStringsContaining(String name, BranchEntity branch,String string);
 
 }

@@ -275,25 +275,13 @@ try {
         );
 
         // Находим коммиты, где эти строки встречались ранее
-        List<CommitEntity> matchingPreviouslyDeleted = commitRepo
-                .findAllByCurrentNameAndBranchAndDeletedStringsContaining(
-                        fileResponse.getFilename(), branchEntity, patchChangesResponse.added()
-                );
-
         List<CommitEntity> matchingPreviouslyAdded = commitRepo
                 .findAllByCurrentNameAndBranchAndAddedStringsContaining(
                         fileResponse.getFilename(), branchEntity, patchChangesResponse.removed()
                 );
 
-        List<String> previouslyDeletedStrings = new ArrayList<>();
         List<String> previouslyAddedStrings = new ArrayList<>();
 
-        for (CommitEntity commitEntity : matchingPreviouslyDeleted) {
-            List<String> deleted = objectMapper.readValue(
-                    commitEntity.getDeletedStrings(), new TypeReference<>() {}
-            );
-            previouslyDeletedStrings.addAll(deleted);
-        }
 
         for (CommitEntity commitEntity : matchingPreviouslyAdded) {
             List<String> added = objectMapper.readValue(
@@ -305,35 +293,22 @@ try {
         // Считаем рефакторинг: удалено и где-то ранее добавлялось, или наоборот
         int refactoredCount = 0;
 
-        for (String line : addedLines) {
-            if (previouslyDeletedStrings.contains(line)) {
-                refactoredCount++;
-            }
-        }
-
         for (String line : removedLines) {
             if (previouslyAddedStrings.contains(line)) {
                 refactoredCount++;
             }
         }
 
-        // Рефакторинг в рамках текущего коммита (вставили и удалили одну и ту же строку)
+        // Рефакторинг в рамках текущего файла (вставили и удалили одну и ту же строку)
         Set<String> internalRefactored = new HashSet<>(addedLines);
         internalRefactored.retainAll(removedLines);
 
         refactoredCount += internalRefactored.size();
 
-
-        for (CommitEntity commitEntity : matchingPreviouslyDeleted) {
-            commitEntity.setRefactors(refactoredCount); // <-- твоё поле
-        }
-
         for (CommitEntity commitEntity : matchingPreviouslyAdded) {
             commitEntity.setRefactors(refactoredCount); // <-- твоя логика может отличаться
         }
 
-        // Сохраняем в репозиторий (если это JPA)
-        commitRepo.saveAll(matchingPreviouslyDeleted);
         commitRepo.saveAll(matchingPreviouslyAdded);
 
         return refactoredCount;

@@ -41,10 +41,7 @@ public class SubscriptionService {
 
     public ResponseEntity<?> subscribe(SubscriptionRequest subscriptionRequest, String token) {
 
-
-        String username = jwtTokenUtils.getUsername(token.substring(7));
-
-        Optional<UserEntity> userEntityOptional = userRepo.findByUsername(username);
+        Optional<UserEntity> userEntityOptional = getUserEntityOutOfJwt(token);
 
         if (userEntityOptional.isEmpty()) {
             return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Пользователь отсутствует в бд"), HttpStatus.BAD_REQUEST);
@@ -61,8 +58,8 @@ public class SubscriptionService {
             branchEntity = branchEntityOptional.get();
 
             if (userEntity.getBranches().stream().anyMatch(branch -> branch.getUrl().equals(subscriptionRequest.url()))) {
-
                 return new ResponseEntity<>(new RepeatedSubscriptionException(HttpStatus.BAD_REQUEST.value(), "Такая ветка уже отслеживается"), HttpStatus.BAD_REQUEST);
+
             } else {
 
                 branchEntity.getUsers().add(userEntity);
@@ -70,12 +67,9 @@ public class SubscriptionService {
 
                 userEntity.getBranches().add(branchEntity);
                 userRepo.saveAndFlush(userEntity);
-
             }
 
         } else {
-
-
             branchEntity = new BranchEntity(subscriptionRequest.url(), OffsetDateTime.now().plusYears(30));
             branchRepo.saveAndFlush(branchEntity);
 
@@ -83,24 +77,17 @@ public class SubscriptionService {
             userEntity.getBranches().add(branchEntity);
             userRepo.saveAndFlush(userEntity);
         }
-
-
-
-
-
         statisticsClient.sendSubscription(subscriptionRequest);
 
-        log.info("user {} subscribed!", username);
-        return ResponseEntity.ok(new SubscriptionResponse(username,subscriptionRequest.url()));
+        log.info("user {} subscribed!", userEntity.getUsername());
+        return ResponseEntity.ok(new SubscriptionResponse(userEntity.getUsername(),subscriptionRequest.url()));
 
 
     }
 
     public ResponseEntity<?> unsubscribe(UnsubscriptionRequest unsubscriptionRequest, String token) {
 
-        String username = jwtTokenUtils.getUsername(token.substring(7));
-
-        Optional<UserEntity> userEntityOptional = userRepo.findByUsername(username);
+        Optional<UserEntity> userEntityOptional = getUserEntityOutOfJwt(token);
 
         BranchEntity branchEntity = branchRepo.findByUrl(unsubscriptionRequest.url()).orElseThrow();
 
@@ -119,8 +106,18 @@ public class SubscriptionService {
         userEntity.getBranches().remove(branchEntity);
         userRepo.saveAndFlush(userEntity);
 
-        return ResponseEntity.ok(new UnsubscriptionResponse(username,unsubscriptionRequest.url()));
+        return ResponseEntity.ok(new UnsubscriptionResponse(userEntity.getUsername(),unsubscriptionRequest.url()));
     }
 
 
+    public void getCurrentUpdates(String token){
+        Optional<UserEntity> userEntityOptional = getUserEntityOutOfJwt(token);
+        statisticsClient.sendCurrentUpdatesRequest(userEntityOptional.get().getUsername());
+    }
+
+
+    private Optional<UserEntity> getUserEntityOutOfJwt(String token) {
+        String username = jwtTokenUtils.getUsername(token.substring(7));
+       return userRepo.findByUsername(username);
+    }
 }

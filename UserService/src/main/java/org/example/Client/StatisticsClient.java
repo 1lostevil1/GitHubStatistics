@@ -41,4 +41,31 @@ public class StatisticsClient {
                         error -> log.error("Ошибка при отправке запроса: ", error) // Обработка ошибок
                 );
     }
+
+    public void sendCurrentUpdatesRequest(String username) {
+
+
+
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/stat/currentUpdates")
+                        .queryParam("username", username)
+                        .build())
+                .retrieve()
+                .onStatus(
+                        HttpStatusCode::is4xxClientError,
+                        error -> Mono.error(new RuntimeException("not found"))
+                )
+                .onStatus(
+                        HttpStatusCode::is5xxServerError,
+                        error -> Mono.error(new ResponseStatusException(
+                                HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера"
+                        ))
+                )
+                .bodyToMono(void.class)
+                .subscribe(
+                        null,
+                        error -> log.error("Ошибка при отправке запроса: ", error) // Обработка ошибок
+                );
+    }
 }

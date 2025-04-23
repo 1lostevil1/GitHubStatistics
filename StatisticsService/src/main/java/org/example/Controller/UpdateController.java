@@ -6,10 +6,7 @@ import org.example.DTO.BranchDTO;
 import org.example.Request.User.SubscriptionRequest;
 import org.example.Service.BranchUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -34,6 +31,10 @@ public class UpdateController {
         OffsetDateTime offsetDateTime = OffsetDateTime.of(dateTime, ZoneOffset.ofHours(3));
 
         branchUpdateService.initialSub(new BranchDTO(subscriptionRequest.url(),offsetDateTime));
+    }
 
+    @GetMapping("/currentUpdates")
+    public  void recentlyAddedCheck(@RequestParam String username) {
+       branchUpdateService.sendCurrentSubs(username);
     }
 }
